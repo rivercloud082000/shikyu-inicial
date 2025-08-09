@@ -4,9 +4,6 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
 const map: Record<string, string> = {
   AccessDenied: "Tu correo no está permitido por el administrador.",
   OAuthCallback: "No se pudo validar tu cuenta de Google.",
