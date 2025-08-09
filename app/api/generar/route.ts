@@ -1,12 +1,12 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
-
+import { jsonrepair } from "jsonrepair";
 import { buildUserPrompt, SYSTEM } from "@/lib/ai/prompts";
 import { generateSessionJSON } from "@/lib/ai/providers";
 
 // 🔍 Función para inferir el ciclo según nivel y grado
 function inferirCiclo(nivel: string = "", grado: string = ""): string {
-  const g = grado.toLowerCase();
-  const n = nivel.toLowerCase();
+  const g = (grado || "").toLowerCase();
+  const n = (nivel || "").toLowerCase();
 
   if (n === "inicial") {
     if (g.includes("3") || g.includes("4")) return "I";
@@ -56,10 +56,10 @@ export async function POST(req: NextRequest) {
     const provider = (body.provider ?? "ollama-mistral") as
       | "ollama-mistral"
       | "cohere";
+
     const datos = body.datos ?? {};
     const tituloSesion = datos.tituloSesion ?? "Sesión sin título";
     const contextoPersonalizado = body.contextoSecuencia ?? "";
-
     const capacidadesManuales = convertirAArray(datos.capacidades ?? []);
 
     // ✏️ Construye el prompt
@@ -78,52 +78,106 @@ export async function POST(req: NextRequest) {
       temperature: 0.2,
     });
 
-    // 🧹 Limpieza del texto
+    // 🧹 Limpieza del texto (UNA sola vez)
     let cleaned = String(raw)
       .replace(/\\u[\da-f]{0,3}[^a-f0-9]/gi, "")
       .replace(/[“”‘’]/g, '"')
       .replace(/\u0000/g, "")
       .trim();
 
-    // 🧪 Intenta parsear el JSON generado
+    // 🧪 Parse robusto del JSON
     let data: any = null;
-    try {
-      data = JSON.parse(cleaned);
-    } catch {
-      const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        try {
-          data = JSON.parse(jsonMatch[0]);
-        } catch {
-          return NextResponse.json(
-            { success: false, error: "JSON corregido inválido", raw: jsonMatch[0] },
-            { status: 502 }
-          );
+
+    const tryParse = (txt: string) => {
+      try {
+        return JSON.parse(txt);
+      } catch {
+        return null;
+      }
+    };
+
+    // 1) Intento directo
+    data = tryParse(cleaned);
+
+    // 2) Si falla, intenta extraer el primer objeto balanceado { ... }
+    if (!data) {
+      const extractBalancedJson = (s: string) => {
+        let depth = 0,
+          start = -1,
+          inStr = false,
+          esc = false;
+        for (let i = 0; i < s.length; i++) {
+          const ch = s[i];
+          if (inStr) {
+            if (esc) {
+              esc = false;
+              continue;
+            }
+            if (ch === "\\") {
+              esc = true;
+              continue;
+            }
+            if (ch === '"') inStr = false;
+            continue;
+          }
+          if (ch === '"') {
+            inStr = true;
+            continue;
+          }
+          if (ch === "{") {
+            if (depth === 0) start = i;
+            depth++;
+          } else if (ch === "}") {
+            depth--;
+            if (depth === 0 && start !== -1) return s.slice(start, i + 1);
+          }
         }
-      } else {
-        return NextResponse.json(
-          { success: false, error: "La IA no devolvió JSON válido", raw },
-          { status: 502 }
-        );
+        return null;
+      };
+
+      const balanced = extractBalancedJson(cleaned);
+      if (balanced) data = tryParse(balanced);
+    }
+
+    // 3) Si aún falla, intenta reparar
+    if (!data) {
+      try {
+        const repaired = jsonrepair(cleaned);
+        data = tryParse(repaired);
+      } catch {
+        // noop
       }
     }
 
-    if (!data || typeof data !== "object") {
+    // 4) Si también falla, responde error con muestra
+    if (!data) {
       return NextResponse.json(
-        { success: false, error: "JSON nulo o inválido", raw },
+        {
+          success: false,
+          error: "La IA no devolvió JSON válido",
+          sample: cleaned.slice(0, 800),
+        },
         { status: 502 }
       );
     }
 
     // 🎯 Completa datos faltantes (como ciclo inferido)
-    if (!data.datos?.ciclo || (typeof data.datos.ciclo === "string" && data.datos.ciclo.trim() === "-")) {
+    if (
+      !data.datos?.ciclo ||
+      (typeof data.datos.ciclo === "string" && data.datos.ciclo.trim() === "-")
+    ) {
       data.datos = data.datos || {};
-      data.datos.ciclo = inferirCiclo(data.datos.nivel, data.datos.grado);
+      data.datos.ciclo = inferirCiclo(
+        data.datos.nivel ?? "",
+        data.datos.grado ?? ""
+      );
     }
 
     // ➕ Unifica capacidades generadas y manuales
     if (Array.isArray(data.datos?.capacidades)) {
-      data.datos.capacidades = [...new Set([...data.datos.capacidades, ...capacidadesManuales])];
+      data.datos.capacidades = [
+        ...new Set([...data.datos.capacidades, ...capacidadesManuales]),
+      ];
     } else {
       data.datos.capacidades = capacidadesManuales;
     }
