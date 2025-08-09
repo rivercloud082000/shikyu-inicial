@@ -1,6 +1,11 @@
-"use client";
+// app/auth/error/page.tsx
+import { Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+
+// evita SSG y cache en esta página
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 const map: Record<string, string> = {
   AccessDenied: "Tu correo no está permitido por el administrador.",
@@ -8,7 +13,9 @@ const map: Record<string, string> = {
   Configuration: "Faltan variables o credenciales en el servidor.",
 };
 
-export default function AuthError() {
+// componente cliente interno (usa el hook)
+function AuthErrorInner() {
+  "use client";
   const sp = useSearchParams();
   const err = sp.get("error") || "AccessDenied";
   const msg = map[err] || "No pudimos iniciar sesión.";
@@ -23,5 +30,13 @@ export default function AuthError() {
         </Link>
       </div>
     </main>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div />}>
+      <AuthErrorInner />
+    </Suspense>
   );
 }
