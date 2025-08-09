@@ -24,13 +24,6 @@ type DocPayload = {
   };
 };
 
-// 🔧 Convierte un Buffer de Node a un Uint8Array seguro para BodyInit (sin SharedArrayBuffer)
-function toUint8(b: Buffer): Uint8Array {
-  const out = new Uint8Array(b.length);
-  out.set(b); // copia los bytes; evita tocar b.buffer (que tipa como ArrayBufferLike)
-  return out;
-}
-
 export async function POST(req: NextRequest) {
   try {
     const { data } = (await req.json()) as DocPayload;
@@ -72,27 +65,29 @@ export async function POST(req: NextRequest) {
             new Paragraph("Referencias:"),
             ...(data?.referencias ?? []).map(
               (ref) =>
-                new Paragraph(`• ${ref?.fuente ?? ""}${ref?.pagina ? ` - ${ref.pagina}` : ""}`)
+                new Paragraph(
+                  `• ${ref?.fuente ?? ""}${ref?.pagina ? ` - ${ref.pagina}` : ""}`
+                )
             ),
           ],
         },
       ],
     });
 
-    // 1) Genera el DOCX como Buffer
+    // 1) Genera el .docx como Buffer de Node
     const buffer = await Packer.toBuffer(doc);
 
-    // 2) ⚠️ En lugar de usar buffer.buffer.slice(...), creamos un Uint8Array dedicado
-    const body = toUint8(buffer);
+    // 2) Crea un Blob (BodyInit aceptado en Next 15 / Vercel)
+    const MIME =
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    const blob = new Blob([buffer], { type: MIME });
 
-    // 3) Respuesta de descarga
-    return new NextResponse(body, {
+    // 3) Devuelve Response (no NextResponse) para evitar conflictos de tipos
+    return new Response(blob, {
       headers: {
-        "Content-Type":
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "Content-Type": MIME,
         "Content-Disposition": 'attachment; filename="sesion-aprendizaje.docx"',
         "Cache-Control": "no-store",
-        // Opcional: "Content-Length": String(body.byteLength),
       },
       status: 200,
     });
@@ -103,4 +98,9 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+// (Opcional) Ping rápido para verificar ruta en producción
+export async function GET() {
+  return NextResponse.json({ ok: true, route: "/api/doc", runtime }, { status: 200 });
 }
