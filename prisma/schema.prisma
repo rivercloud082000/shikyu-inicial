@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+}
+
+model User {
+  id        String       @id @default(cuid())
+  email     String?      @unique
+  name      String?
+  image     String?
+  role      Role         @default(TEACHER)
+  isAllowed Boolean      @default(false)
+  createdAt DateTime     @default(now())
+  sessions  SessionDoc[]
+}
+
+model Allowlist {
+  email     String   @id
+  role      Role     @default(TEACHER)
+  createdAt DateTime @default(now())
+}
+
+model SessionDoc {
+  id        String   @id @default(cuid())
+  userId    String
+  dataJson  Json
+  version   String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}

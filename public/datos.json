@@ -1,0 +1,39 @@
+{
+  "datos": {
+    "nivel": "Primaria",
+    "ciclo": "V",
+    "grado": "6to",
+    "bimestre": "I",
+    "unidad": "II",
+    "fecha": "20/05",
+    "docente": "ADRIAN JESUS PEREZ HUAMPUQUE",
+    "area": "Matemática",
+    "competencia": "Resuelve problemas de cantidad.",
+    "capacidades": [
+      "Traduce cantidades...",
+      "Comunica su comprensión...",
+      "Usa estrategias..."
+    ]
+  },
+  "filas": [
+    {
+      "area": "Matemática",
+      "tituloSesion": "Números decimales: Valor posicional",
+      "propositoAprendizaje": "Identificar y aplicar el valor posicional de los números decimales...",
+      "desempenosPrecisados": "Resuelve problemas que implican la lectura, descomposición...",
+      "secuenciaDidactica": "▪ Saludo, motivación...\n▪ Actividades individuales y grupales...",
+      "recursosDidacticos": ["Fichas", "pizarra", "plumones"],
+      "criteriosEvaluacion": [
+        "Identifica el valor posicional",
+        "Compara y ordena correctamente"
+      ],
+      "instrumento": ["Evaluación cualitativa", "cuestionario"],
+      "evidenciaAprendizaje": "Resolución de ejercicios y socialización oral"
+    }
+  ],
+  "referencias": [
+    { "fuente": "MINEDU Currículo Nacional", "pagina": "112" }
+  ],
+  "bloqueos": [],
+  "versionPlantilla": "shikyoued"
+}

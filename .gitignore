@@ -1,0 +1,14 @@
+# Dependencias
+node_modules
+
+# Archivos de entorno (¡no subir!)
+.env
+.env.*
+!.env.example
+
+# Build / cache
+.next
+out
+
+# Archivos generados de Prisma
+/generated/prisma

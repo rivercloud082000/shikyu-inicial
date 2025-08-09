@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+
+html, body, :root {
+  height: 100%;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.logo-pos {
+  position: absolute;
+  top: 10px;      /* Ajusta este valor manualmente */
+  right: 10px;    /* Ajusta este valor también */
+}
+
+.footer-pos {
+  position: absolute;
+  bottom: 10px;   /* Cámbialo por ejemplo a 5px, 0px si quieres más abajo */
+  width: 100%;
+  text-align: center;
+}
+
