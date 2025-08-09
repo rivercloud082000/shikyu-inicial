@@ -5,7 +5,6 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { Packer, Document, Paragraph, TextRun } from "docx";
 
-// Tipado suave del body para evitar errores si faltan campos
 type DocPayload = {
   data: {
     area?: string;
@@ -24,6 +23,13 @@ type DocPayload = {
   };
 };
 
+// Copia un Buffer de Node a un ArrayBuffer NUEVO (tipo DOM, sin SharedArrayBuffer)
+function bufferToArrayBuffer(buf: Buffer): ArrayBuffer {
+  const ab = new ArrayBuffer(buf.length);
+  new Uint8Array(ab).set(buf); // copia byte a byte
+  return ab;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { data } = (await req.json()) as DocPayload;
@@ -34,56 +40,43 @@ export async function POST(req: NextRequest) {
           properties: {},
           children: [
             new Paragraph({
-              children: [
-                new TextRun({ text: "Sesión de Aprendizaje", bold: true, size: 32 }),
-              ],
+              children: [new TextRun({ text: "Sesión de Aprendizaje", bold: true, size: 32 })],
               alignment: "center",
             }),
             new Paragraph(""),
-
             new Paragraph(`Área: ${data?.area ?? ""}`),
             new Paragraph(`Nivel: ${data?.nivel ?? ""}`),
             new Paragraph(`Grado: ${data?.grado ?? ""}`),
             new Paragraph(`Fecha: ${data?.fecha ?? ""}`),
             new Paragraph(`Título: ${data?.tituloSesion ?? ""}`),
-
             new Paragraph(`Propósito del aprendizaje: ${data?.propositoAprendizaje ?? ""}`),
             new Paragraph(`Desempeños: ${data?.desempenosPrecisados ?? ""}`),
             new Paragraph(`Secuencia Didáctica: ${data?.secuenciaDidactica ?? ""}`),
-
             new Paragraph(`Recursos Didácticos:`),
             ...(data?.recursosDidacticos ?? []).map((r) => new Paragraph(`• ${r}`)),
-
             new Paragraph(`Criterios de Evaluación:`),
             ...(data?.criteriosEvaluacion ?? []).map((c) => new Paragraph(`• ${c}`)),
-
             new Paragraph(`Instrumento:`),
             ...(data?.instrumento ?? []).map((i) => new Paragraph(`• ${i}`)),
-
             new Paragraph(`Evidencia de aprendizaje: ${data?.evidenciaAprendizaje ?? ""}`),
-
             new Paragraph("Referencias:"),
             ...(data?.referencias ?? []).map(
-              (ref) =>
-                new Paragraph(
-                  `• ${ref?.fuente ?? ""}${ref?.pagina ? ` - ${ref.pagina}` : ""}`
-                )
+              (ref) => new Paragraph(`• ${ref?.fuente ?? ""}${ref?.pagina ? ` - ${ref.pagina}` : ""}`)
             ),
           ],
         },
       ],
     });
 
-    // 1) Genera el .docx como Buffer de Node
+    // 1) Genera DOCX como Buffer de Node
     const buffer = await Packer.toBuffer(doc);
 
-    // 2) Crea un Blob (BodyInit aceptado en Next 15 / Vercel)
-    const MIME =
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-    const blob = new Blob([buffer], { type: MIME });
+    // 2) Convierte a ArrayBuffer DOM real (sin tipos problemáticos)
+    const arrayBuffer = bufferToArrayBuffer(buffer);
 
-    // 3) Devuelve Response (no NextResponse) para evitar conflictos de tipos
-    return new Response(blob, {
+    // 3) Devuelve como Response con ArrayBuffer (BodyInit válido)
+    const MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    return new Response(arrayBuffer, {
       headers: {
         "Content-Type": MIME,
         "Content-Disposition": 'attachment; filename="sesion-aprendizaje.docx"',
@@ -100,7 +93,6 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// (Opcional) Ping rápido para verificar ruta en producción
 export async function GET() {
   return NextResponse.json({ ok: true, route: "/api/doc", runtime }, { status: 200 });
 }
