@@ -37,10 +37,11 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
-    "seed:admin": "tsx scripts/seed-allowlist.ts"
+    "seed:admin": "tsx scripts/seed-allowlist.ts",
+    "postinstall": "prisma generate"
   }
 }
