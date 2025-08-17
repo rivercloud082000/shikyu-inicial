@@ -4,28 +4,36 @@ import { buildUserPrompt, SYSTEM } from "@/lib/ai/prompts";
 import { generateSessionJSON } from "@/lib/ai/providers";
 
 // 🔍 Función para inferir el ciclo según nivel y grado
-function inferirCiclo(nivel: string = "", grado: string = ""): string {
-  const g = (grado || "").toLowerCase();
-  const n = (nivel || "").toLowerCase();
+// ✅ MINEDU: Primaria (III, IV, V) / Secundaria (VI, VII)
+function normalizeNivel(nivel: string = ""): "primaria" | "secundaria" | "" {
+  const n = (nivel || "").toLowerCase().trim();
+  if (n.startsWith("pri")) return "primaria";
+  if (n.startsWith("sec")) return "secundaria";
+  return "";
+}
 
-  if (n === "inicial") {
-    if (g.includes("3") || g.includes("4")) return "I";
-    if (g.includes("5")) return "II";
-    return "I";
-  }
+function parseGrado(grado: string = ""): number {
+  const m = (grado || "").toLowerCase().match(/\d+/);
+  return m ? parseInt(m[0], 10) : NaN; // "3", "3°", "3ero" -> 3
+}
+
+function inferirCiclo(nivel: string = "", grado: string = ""): string {
+  const n = normalizeNivel(nivel);
+  const g = parseGrado(grado);
+  if (!n || !Number.isFinite(g)) return "";
 
   if (n === "primaria") {
-    if (g.includes("1") || g.includes("2")) return "I";
-    if (g.includes("3") || g.includes("4")) return "II";
-    return "III";
+    if (g <= 2) return "III";
+    if (g <= 4) return "IV";
+    return "V"; // 5°–6°
   }
 
   if (n === "secundaria") {
-    if (g.includes("1") || g.includes("2")) return "IV";
-    return "V";
+    if (g <= 2) return "VI";
+    return "VII"; // 3°–5°
   }
 
-  return "-";
+  return "";
 }
 
 // 🔄 Convierte strings o arrays en array limpio
@@ -57,14 +65,24 @@ export async function POST(req: NextRequest) {
       | "ollama-mistral"
       | "cohere";
 
+    // ---------------------------
+    // ✅ Server = verdad (CICLO)
+    // ---------------------------
     const datos = body.datos ?? {};
-    const tituloSesion = datos.tituloSesion ?? "Sesión sin título";
-    const contextoPersonalizado = body.contextoSecuencia ?? "";
-    const capacidadesManuales = convertirAArray(datos.capacidades ?? []);
+    const nivel = String(datos.nivel ?? "");
+    const grado = String(datos.grado ?? "");
+    const ciclo = inferirCiclo(nivel, grado); // ← cálculo oficial
 
-    // ✏️ Construye el prompt
+    // Forzamos que el backend mande el ciclo correcto
+    const datosServer = { ...datos, nivel, grado, ciclo };
+
+    const tituloSesion = datosServer.tituloSesion ?? "Sesión sin título";
+    const contextoPersonalizado = body.contextoSecuencia ?? "";
+    const capacidadesManuales = convertirAArray(datosServer.capacidades ?? []);
+
+    // ✏️ Construye el prompt usando SIEMPRE datosServer
     const prompt = buildUserPrompt({
-      datos,
+      datos: datosServer, // ← acá ya va el ciclo correcto
       tituloSesion,
       contextoPersonalizado,
       capacidadesSeleccionadas: capacidadesManuales,
@@ -161,17 +179,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 🎯 Completa datos faltantes (como ciclo inferido)
-    if (
-      !data.datos?.ciclo ||
-      (typeof data.datos.ciclo === "string" && data.datos.ciclo.trim() === "-")
-    ) {
-      data.datos = data.datos || {};
-      data.datos.ciclo = inferirCiclo(
-        data.datos.nivel ?? "",
-        data.datos.grado ?? ""
-      );
-    }
+    // --------------------------------------------
+    // 🎯 Refuerzo post-IA: forzar ciclo correcto
+    // --------------------------------------------
+    data.datos = data.datos || {};
+    // conserva nivel/grado de la IA si los trajo, si no usa los del server
+    data.datos.nivel = String(data.datos.nivel ?? nivel ?? "");
+    data.datos.grado = String(data.datos.grado ?? grado ?? "");
+    data.datos.ciclo = inferirCiclo(data.datos.nivel, data.datos.grado);
 
     // ➕ Unifica capacidades generadas y manuales
     if (Array.isArray(data.datos?.capacidades)) {

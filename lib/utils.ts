@@ -7,14 +7,14 @@ export function inferirCiclo(nivel: string, grado: string): string {
   }
 
   if (nivel === "Primaria") {
-    if (gradoNum === 1 || gradoNum === 2) return "Ciclo II";
-    if (gradoNum === 3 || gradoNum === 4) return "Ciclo III";
-    if (gradoNum === 5 || gradoNum === 6) return "Ciclo IV";
+    if (gradoNum === 1 || gradoNum === 2) return "Ciclo III";
+    if (gradoNum === 3 || gradoNum === 4) return "Ciclo IV";
+    if (gradoNum === 5 || gradoNum === 6) return "Ciclo V";
   }
 
   if (nivel === "Secundaria") {
-    if (gradoNum === 1 || gradoNum === 2) return "Ciclo V";
-    if (gradoNum === 3 || gradoNum === 4 || gradoNum === 5) return "Ciclo VI";
+    if (gradoNum === 1 || gradoNum === 2) return "Ciclo VI";
+    if (gradoNum === 3 || gradoNum === 4 || gradoNum === 5) return "Ciclo VII";
   }
 
   return "-";

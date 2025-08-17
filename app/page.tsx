@@ -19,7 +19,7 @@ export default function Home() {
         <Image
           src="/logo-shikyu.png"
           alt="Logo ShikyuEd"
-          width={100}
+          width={110}
           height={100}
         />
       </div>
@@ -54,21 +54,55 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Pie de página manual */}
-      <div className="footer-pos text-sm absolute bottom-4 text-white">
-        <div>
-          📧 Contacto:{" "}
-          <a
-            href="mailto:huampuque2000@gmail.com"
-            className="underline text-blue-300"
-          >
-            huampuque2000@gmail.com
-          </a>
-        </div>
-        <div>
-          ⚡ Creado por <strong className="text-blue-300">Adrian Jesus Perez Huampuque</strong>
-        </div>
-      </div>
+      {/* 🔹 Bloque de contacto y autor: lo más abajo y a la derecha */}
+      {/* Footer fijo en la esquina inferior derecha */}
+<div className="footer-pos text-sm absolute bottom-4 text-white">
+  {/* Íconos */}
+  <div className="flex justify-end gap-3 mb-2">
+    {/* WhatsApp */}
+    <a
+      href="https://wa.me/51913840883"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="hover:opacity-80 transition"
+      aria-label="WhatsApp"
+      title="WhatsApp"
+    >
+      <Image src="/whatsapp.png" alt="WhatsApp" width={28} height={28} />
+    </a>
+
+    {/* Instagram */}
+    <a
+      href="https://www.instagram.com/adri.anperez5043?igsh=ZGk3Mm5obHNhMzFI"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="hover:opacity-80 transition"
+      aria-label="Instagram"
+      title="Instagram"
+    >
+      <Image src="/instagram.png" alt="Instagram" width={40} height={28} />
+    </a>
+  </div>
+
+  {/* Gmail */}
+
+  <div className="mb-1">
+    📧{" "}
+    <a
+      href="mailto:huampuque2000@gmail.com"
+      className="underline text-blue-300"
+    >
+      huampuque2000@gmail.com
+    </a>
+  </div>
+
+  {/* Autor */}
+
+  <div className="text-xs text-white/80">
+    Creado por{" "}
+    <strong className="text-blue-300">Adrian Jesus Perez Huampuque</strong>
+  </div>
+</div>
     </main>
   );
 }
