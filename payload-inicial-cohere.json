@@ -1,0 +1,18 @@
+﻿{
+  "provider": "cohere",
+  "area": "Inicial",
+  "grado": "3 años",
+  "tema": "Color amarillo",
+  "docente": "Haydi Shirley Quispe Carbajal",
+  "fecha": "11/08/2025",
+  "bimestre": "I bimestre",
+  "numeroSesion": 114,
+  "experiencia": "II",
+  "valor": "Tolerancia",
+  "enfoquesTransversales": ["Enfoque de derechos", "Enfoque ambiental"],
+  "accionesObservables": [
+    "Reconoce objetos de color amarillo en su entorno",
+    "Agrupa objetos de color amarillo",
+    "Sigue instrucciones simples relacionadas al color trabajado"
+  ]
+}

@@ -27,7 +27,20 @@ export default function Home() {
       {/* 🔹 Título en la parte superior, centrado */}
       <div className="pt-6 text-center">
         <h1 className="text-4xl font-extrabold text-white drop-shadow-lg animate-pulse">
-          Bienvenido a ShikyuoEd
+          Bienvenido a SestIA{" "}
+          <span
+            className="relative inline-block align-middle text-transparent bg-clip-text bg-gradient-to-r from-rose-300 via-pink-500 to-fuchsia-600"
+            style={{
+              backgroundImage:
+                "linear-gradient(90deg, #f9a8d4 0%, #ec4899 50%, #a21caf 100%)",
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              color: "transparent",
+              WebkitTextStroke: "0.5px rgba(255,255,255,0.25)", // contorno sutil p/legibilidad
+            }}
+          >
+            Blossom
+          </span>
         </h1>
       </div>
 
@@ -56,53 +69,50 @@ export default function Home() {
 
       {/* 🔹 Bloque de contacto y autor: lo más abajo y a la derecha */}
       {/* Footer fijo en la esquina inferior derecha */}
-<div className="footer-pos text-sm absolute bottom-4 text-white">
-  {/* Íconos */}
-  <div className="flex justify-end gap-3 mb-2">
-    {/* WhatsApp */}
-    <a
-      href="https://wa.me/51913840883"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="hover:opacity-80 transition"
-      aria-label="WhatsApp"
-      title="WhatsApp"
-    >
-      <Image src="/whatsapp.png" alt="WhatsApp" width={28} height={28} />
-    </a>
+      <div className="footer-pos text-sm absolute bottom-4 text-white">
+        {/* Íconos */}
+        <div className="flex justify-end gap-3 mb-2">
+          {/* WhatsApp */}
+          <a
+            href="https://wa.me/51913840883"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:opacity-80 transition"
+            aria-label="WhatsApp"
+            title="WhatsApp"
+          >
+            <Image src="/whatsapp.png" alt="WhatsApp" width={28} height={28} />
+          </a>
 
-    {/* Instagram */}
-    <a
-      href="https://www.instagram.com/adri.anperez5043?igsh=ZGk3Mm5obHNhMzFI"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="hover:opacity-80 transition"
-      aria-label="Instagram"
-      title="Instagram"
-    >
-      <Image src="/instagram.png" alt="Instagram" width={40} height={28} />
-    </a>
-  </div>
+          {/* Instagram */}
+          <a
+            href="https://www.instagram.com/adri.anperez5043?igsh=ZGk3Mm5obHNhMzFI"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:opacity-80 transition"
+            aria-label="Instagram"
+            title="Instagram"
+          >
+            <Image src="/instagram.png" alt="Instagram" width={40} height={28} />
+          </a>
+        </div>
 
-  {/* Gmail */}
+        {/* Gmail */}
+        <div className="mb-1">
+          📧{" "}
+          <a
+            href="mailto:huampuque2000@gmail.com"
+            className="underline text-blue-300"
+          >
+            huampuque2000@gmail.com
+          </a>
+        </div>
 
-  <div className="mb-1">
-    📧{" "}
-    <a
-      href="mailto:huampuque2000@gmail.com"
-      className="underline text-blue-300"
-    >
-      huampuque2000@gmail.com
-    </a>
-  </div>
-
-  {/* Autor */}
-
-  <div className="text-xs text-white/80">
-    Creado por{" "}
-    <strong className="text-blue-300">Adrian Jesus Perez Huampuque</strong>
-  </div>
-</div>
+        {/* Autor */}
+        <div className="text-xs text-white/80">
+          Desarrollado por <strong className="text-blue-300">ERES Company</strong>
+        </div>
+      </div>
     </main>
   );
 }

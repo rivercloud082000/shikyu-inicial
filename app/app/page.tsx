@@ -1,36 +1,69 @@
 ﻿"use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import LoadingOverlay from "../../components/LoadingOverlay";
 import { COMPETENCIAS_CAPACIDADES } from "../../lib/competencias-capacidades";
-import LoadingOverlay from "../../components/LoadingOverlay"; // ← añadido
+// Ajusta la ruta si tu proyecto la tiene distinta:
+import { VALORES, ENFOQUES_TRANSVERSALES } from "../../lib/inicial/constants";
+
+type FormState = {
+  tituloSesion: string;
+  tema: string;           // requerido por el backend
+  experiencia: string;    // una sola vez
+  grado: string;          // "3 años" | "4 años" | "5 años"
+  nivel: string;          // fijo "Inicial"
+  bimestre: string;
+  fecha: string;
+  docente: string;
+  numeroSesion: string;   // lo convertimos a number al enviar
+  area: string;
+  competencia: string;
+  capacidades: string[];
+  valor: string;                 // select (VALORES)
+  enfoquesTransversales: string[]; // checkboxes (min 1)
+  provider: string;
+};
 
 export default function AppPage() {
-  const [formulario, setFormulario] = useState({
+  const [formulario, setFormulario] = useState<FormState>({
     tituloSesion: "",
-    unidad: "",
+    tema: "",
+    experiencia: "",
     grado: "",
-    nivel: "",
+    nivel: "Inicial",
     bimestre: "",
     fecha: "",
     docente: "",
+    numeroSesion: "",
     area: "",
     competencia: "",
-    capacidades: [] as string[],
+    capacidades: [],
+    valor: "",
+    enfoquesTransversales: [],
     provider: "cohere",
   });
 
   const [competenciasDisponibles, setCompetenciasDisponibles] = useState<string[]>([]);
   const [capacidadesDisponibles, setCapacidadesDisponibles] = useState<string[]>([]);
-  const [jsonGenerado, setJsonGenerado] = useState<any>(null);
+
+  // respuesta y markers para exportar
+  const [serverResp, setServerResp] = useState<any>(null);
+  const [markers, setMarkers] = useState<any>(null);
+
+  const [loading, setLoading] = useState(false);
   const [descargando, setDescargando] = useState(false);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false); // ← añadido
 
+  // ---- dependencias de Área/Competencia
   useEffect(() => {
     if (formulario.area) {
       const comps = Object.keys(COMPETENCIAS_CAPACIDADES[formulario.area] || {});
       setCompetenciasDisponibles(comps);
       setFormulario((prev) => ({ ...prev, competencia: comps[0] || "", capacidades: [] }));
+    } else {
+      setCompetenciasDisponibles([]);
+      setCapacidadesDisponibles([]);
+      setFormulario((prev) => ({ ...prev, competencia: "", capacidades: [] }));
     }
   }, [formulario.area]);
 
@@ -38,95 +71,130 @@ export default function AppPage() {
     if (formulario.area && formulario.competencia) {
       const caps = COMPETENCIAS_CAPACIDADES[formulario.area]?.[formulario.competencia] || [];
       setCapacidadesDisponibles(caps);
+    } else {
+      setCapacidadesDisponibles([]);
+      setFormulario((prev) => ({ ...prev, capacidades: [] }));
     }
-  }, [formulario.competencia]);
+  }, [formulario.competencia, formulario.area]);
 
+  // ---- util: timeout para fetch
   const fetchWithTimeout = async (url: string, options: any, timeout = 60000) => {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
-
+    const id = setTimeout(() => controller.abort(), timeout);
     try {
-      const response = await fetch(url, {
-        ...options,
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-      return response;
-    } catch (error) {
-      clearTimeout(timeoutId);
-      throw error;
+      const res = await fetch(url, { ...options, signal: controller.signal });
+      clearTimeout(id);
+      return res;
+    } catch (e) {
+      clearTimeout(id);
+      throw e;
     }
   };
 
+  // ---- submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setJsonGenerado(null);
+    setServerResp(null);
+    setMarkers(null);
 
-    setLoading(true); // ← añadido (inicio overlay)
+    // Validaciones de front:
+    if (!formulario.tema.trim()) {
+      setError("El tema es obligatorio.");
+      return;
+    }
+    if (!formulario.grado.trim()) {
+      setError("El grado es obligatorio (ej: 3 años).");
+      return;
+    }
+    if (!formulario.area.trim()) {
+      setError("Selecciona un área.");
+      return;
+    }
+    if (!formulario.valor.trim()) {
+      setError("Selecciona un valor.");
+      return;
+    }
+    if (formulario.enfoquesTransversales.length < 1) {
+      setError("Selecciona al menos 1 enfoque transversal.");
+      return;
+    }
+
+    setLoading(true);
     try {
+      // Acciones observables: enviamos 2 genéricas para cumplir el esquema.
+      // El backend ya las reemplaza por acciones ligadas al tema/área.
+      const accionesObservables = ["Escucha con atención", "Participa con orden"];
+
+      const payload = {
+        area: formulario.area,
+        grado: formulario.grado, // el backend ya normaliza "3/4/5 años"
+        tema: formulario.tema,
+        docente: formulario.docente || undefined,
+        fecha: formulario.fecha || undefined,
+        bimestre: formulario.bimestre || undefined,
+        numeroSesion: formulario.numeroSesion ? Number(formulario.numeroSesion) : undefined,
+        experiencia: formulario.experiencia || undefined,
+
+        valor: formulario.valor,
+        enfoquesTransversales: formulario.enfoquesTransversales,
+        accionesObservables, // ← IA luego las sustituye
+
+        provider: formulario.provider,
+      };
+
       const res = await fetchWithTimeout(
         "/api/generar",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ datos: formulario, provider: formulario.provider }),
+          headers: { "Content-Type": "application/json; charset=utf-8" },
+          body: JSON.stringify(payload),
         },
-        60000
+        120000
       );
 
-      const rawText = await res.text();
-
-      if (!rawText.trim()) throw new Error("Respuesta vacía del servidor");
-      if (rawText.length > 10_000_000) throw new Error("Respuesta demasiado grande");
-
-      let data;
+      const text = await res.text();
+      let data: any;
       try {
-        data = JSON.parse(rawText);
+        data = JSON.parse(text);
       } catch {
-        const match = rawText.match(/\{[\s\S]*\}/);
-        if (match) {
-          try {
-            data = JSON.parse(match[0]);
-          } catch {
-            throw new Error("Error al parsear JSON parcial");
-          }
-        } else {
-          throw new Error("La respuesta no contiene JSON válido");
-        }
+        throw new Error(text || "Respuesta no JSON");
       }
 
-      if (!data.success && !data.data) {
-        throw new Error(data.error || "Error inesperado del servidor");
+      if (!res.ok || !data?.success) {
+        const detalles =
+          data?.issues?.fieldErrors
+            ? JSON.stringify(data.issues.fieldErrors, null, 2)
+            : data?.error || "Error del servidor";
+        throw new Error(`Payload inválido:\n${detalles}`);
       }
 
-      setJsonGenerado(data.data || data.resultado);
+      setServerResp(data);
+      setMarkers(data.markers);
     } catch (err: any) {
-      setError("Error crítico: " + err.message);
-      console.error("❌ Error crítico en handleSubmit:", err);
+      setError(err.message || "Error inesperado");
+      console.error("❌ handleSubmit:", err);
     } finally {
-      setLoading(false); // ← añadido (fin overlay)
+      setLoading(false);
     }
   };
 
+  // ---- exportar Word
   const descargarWord = async () => {
-    if (!jsonGenerado) return;
+    if (!markers) return;
     setDescargando(true);
-
     try {
       const res = await fetch("/api/exportarWord", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(jsonGenerado),
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+        body: JSON.stringify({ markers }),
       });
-
       if (!res.ok) throw new Error("Error al generar el Word");
-
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "sesion.docx";
+      a.download = "Sesion-Inicial.docx";
       a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
@@ -138,74 +206,75 @@ export default function AppPage() {
 
   return (
     <>
-      {/* Overlay global mientras genera */}
       <LoadingOverlay show={loading} />
 
-      <div
-        className="min-h-screen bg-cover bg-center p-6"
-        style={{ backgroundImage: "url('/giffy5.gif')" }}
-      >
-        <div className="max-w-4xl mx-auto bg-white/80 backdrop-blur-md p-6 rounded">
+      <div className="min-h-screen bg-cover bg-center p-6" style={{ backgroundImage: "url('/giffy5.gif')" }}>
+        <div className="max-w-5xl mx-auto bg-white/80 backdrop-blur-md p-6 rounded">
           <h1 className="text-2xl font-bold mb-4">Generador de Sesiones de Aprendizaje</h1>
 
           <form onSubmit={handleSubmit} className="space-y-4 bg-white p-4 shadow rounded">
-            <input
-              className="border p-2 w-full"
-              placeholder="Título de la sesión"
-              required
-              value={formulario.tituloSesion}
-              onChange={(e) => setFormulario({ ...formulario, tituloSesion: e.target.value })}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
+            {/* Datos generales */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <input
                 className="border p-2"
-                placeholder="Unidad (ej: Unidad 1)"
-                required
-                value={formulario.unidad}
-                onChange={(e) => setFormulario({ ...formulario, unidad: e.target.value })}
+                placeholder="Título de la sesión (opcional)"
+                value={formulario.tituloSesion}
+                onChange={(e) => setFormulario({ ...formulario, tituloSesion: e.target.value })}
               />
               <input
                 className="border p-2"
-                placeholder="Grado (ej: 5to)"
+                placeholder="Tema (requerido)"
+                required
+                value={formulario.tema}
+                onChange={(e) => setFormulario({ ...formulario, tema: e.target.value })}
+              />
+              <input
+                className="border p-2"
+                placeholder="Experiencia (opcional)"
+                value={formulario.experiencia}
+                onChange={(e) => setFormulario({ ...formulario, experiencia: e.target.value })}
+              />
+              <input
+                className="border p-2"
+                placeholder="Grado (ej: 3 años)"
                 required
                 value={formulario.grado}
                 onChange={(e) => setFormulario({ ...formulario, grado: e.target.value })}
               />
               <select
                 className="border p-2"
-                required
                 value={formulario.nivel}
                 onChange={(e) => setFormulario({ ...formulario, nivel: e.target.value })}
               >
-                <option value="">Selecciona un nivel</option>
                 <option value="Inicial">Inicial</option>
-                <option value="Primaria">Primaria</option>
-                <option value="Secundaria">Secundaria</option>
               </select>
               <input
                 className="border p-2"
-                placeholder="Bimestre (ej: I)"
-                required
+                placeholder="Bimestre (ej: I bimestre)"
                 value={formulario.bimestre}
                 onChange={(e) => setFormulario({ ...formulario, bimestre: e.target.value })}
               />
               <input
                 className="border p-2"
-                placeholder="Fecha (ej: 07/08/2025)"
-                required
+                placeholder="Fecha (ej: 09/09/2025)"
                 value={formulario.fecha}
                 onChange={(e) => setFormulario({ ...formulario, fecha: e.target.value })}
               />
               <input
                 className="border p-2"
-                placeholder="Docente (ej: José Valverde)"
-                required
+                placeholder="Docente (ej: Haydi Quispe)"
                 value={formulario.docente}
                 onChange={(e) => setFormulario({ ...formulario, docente: e.target.value })}
               />
+              <input
+                className="border p-2"
+                placeholder="N° de sesión (opcional)"
+                value={formulario.numeroSesion}
+                onChange={(e) => setFormulario({ ...formulario, numeroSesion: e.target.value })}
+              />
             </div>
 
+            {/* Área / Competencia / Capacidades */}
             <select
               className="border p-2 w-full"
               required
@@ -214,29 +283,24 @@ export default function AppPage() {
             >
               <option value="">Selecciona un área</option>
               {Object.keys(COMPETENCIAS_CAPACIDADES).map((a) => (
-                <option key={a} value={a}>
-                  {a}
-                </option>
+                <option key={a} value={a}>{a}</option>
               ))}
             </select>
 
             <select
               className="border p-2 w-full"
-              required
               value={formulario.competencia}
               onChange={(e) => setFormulario({ ...formulario, competencia: e.target.value })}
             >
               <option value="">Selecciona una competencia</option>
               {competenciasDisponibles.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
+                <option key={c} value={c}>{c}</option>
               ))}
             </select>
 
             <div>
               <label className="font-semibold">Capacidades (opcional):</label>
-              <div className="grid grid-cols-1 md:grid-cols-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
                 {capacidadesDisponibles.map((cap) => (
                   <label key={cap} className="text-sm">
                     <input
@@ -257,39 +321,76 @@ export default function AppPage() {
               </div>
             </div>
 
+            {/* Valor (select) */}
+            <div>
+              <label className="font-semibold">Valor:</label>
+              <select
+                className="border p-2 w-full"
+                required
+                value={formulario.valor}
+                onChange={(e) => setFormulario({ ...formulario, valor: e.target.value })}
+              >
+                <option value="">Selecciona un valor</option>
+                {VALORES.map((v) => (
+                  <option key={v} value={v}>{v}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Enfoques transversales (checkboxes) */}
+            <div>
+              <label className="font-semibold">Enfoques transversales (mínimo 1):</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
+                {ENFOQUES_TRANSVERSALES.map((opt) => {
+                  const checked = formulario.enfoquesTransversales.includes(opt);
+                  return (
+                    <label key={opt} className="text-sm">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(e) => {
+                          setFormulario((prev) => ({
+                            ...prev,
+                            enfoquesTransversales: e.target.checked
+                              ? [...prev.enfoquesTransversales, opt]
+                              : prev.enfoquesTransversales.filter((x) => x !== opt),
+                          }));
+                        }}
+                      />{" "}
+                      {opt}
+                    </label>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-gray-600">Selecciona al menos 1 enfoque.</p>
+            </div>
+
+            {/* Provider */}
             <select
               className="border p-2 w-full"
               value={formulario.provider}
               onChange={(e) => setFormulario({ ...formulario, provider: e.target.value })}
             >
               <option value="cohere">Cohere</option>
-              <option value="ollama-mistral">Mistral</option>
+              <option value="ollama-mistral">Mistral (Ollama)</option>
             </select>
 
-            <button
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-              type="submit"
-              disabled={loading} // ← añadido
-            >
-              {loading ? "Generando…" : "Generar sesión" /* ← añadido */}
+            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" type="submit" disabled={loading}>
+              {loading ? "Generando…" : "Generar sesión"}
             </button>
           </form>
 
-          {error && <p className="text-red-600 mt-4">{error}</p>}
+          {error && <p className="text-red-600 mt-4 whitespace-pre-line">{error}</p>}
 
-          {jsonGenerado && (
-            <div className="mt-6 bg-gray-100 p-4 rounded shadow space-y-2">
-              <h3 className="text-lg font-bold">JSON generado</h3>
+          {serverResp && (
+            <div className="mt-6 bg-gray-100 p-4 rounded shadow space-y-3">
+              <h3 className="text-lg font-bold">Respuesta del servidor</h3>
               <pre className="text-xs overflow-auto max-h-96 bg-white p-2 border">
-                {JSON.stringify(jsonGenerado, null, 2)}
+                {JSON.stringify(serverResp, null, 2)}
               </pre>
-
-              <p className="text-sm text-gray-600">Nivel inferido: {jsonGenerado.datos?.nivel}</p>
-              <p className="text-sm text-gray-600">Ciclo inferido: {jsonGenerado.datos?.ciclo}</p>
-
               <button
                 onClick={descargarWord}
-                disabled={descargando}
+                disabled={descargando || !markers}
                 className="mt-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
               >
                 {descargando ? "Descargando..." : "Descargar Word"}

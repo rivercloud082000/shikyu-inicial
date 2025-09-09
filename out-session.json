@@ -1,0 +1,108 @@
+{
+  "success": true,
+  "data": {
+    "datos": {
+      "grado": "4 años",
+      "bimestre": "III",
+      "area": "Comunicación",
+      "experiencia": "V",
+      "docente": "Valverdini Bombardini",
+      "fecha": "09/09/25",
+      "numeroSesion": 122,
+      "competencia": "Comunica mensajes orales con claridad.",
+      "capacidades": [
+        "Escucha y comprende mensajes orales.",
+        "Expresa mensajes orales con claridad."
+      ],
+      "enfoquesTransversales": [
+        "Enfoque de derechos",
+        "Enfoque de búsqueda de la excelencia"
+      ],
+      "valor": "Respeto",
+      "acciones": [
+        "Escucha con atención",
+        "Participa con orden"
+      ]
+    },
+    "filas": [
+      {
+        "tituloSesion": "El Patito Juan",
+        "desempenos": [
+          "Identifica las características del patito Juan.",
+          "Describe las acciones del cuento con sus propias palabras."
+        ],
+        "evidenciaAprendizaje": [
+          "Participación en la dramatización.",
+          "Dibujo libre sobre el cuento."
+        ],
+        "criteriosEvaluacion": [
+          "Demuestra interés y escucha atentamente la lectura del cuento.",
+          "Participa activamente en la dramatización, siguiendo las instrucciones.",
+          "Realiza su dibujo con creatividad y comparte su interpretación del cuento."
+        ],
+        "instrumento": [
+          "Lista de cotejo",
+          "Observación directa"
+        ],
+        "momentos": {
+          "inicio": {
+            "estrategias": [
+              "Saludo lúdico: Los niños se saludan e imitan el sonido de un patito.",
+              "Motivación: Se muestra una imagen del patito Juan y se pregunta a los niños qué les gustaría saber sobre él.",
+              "Saberes/Exploración previa: Se conversa sobre las experiencias previas de los niños con patos o patitos."
+            ],
+            "materiales": [
+              "Imagen del patito Juan",
+              "Láminas de patos y patitos"
+            ]
+          },
+          "desarrollo": {
+            "estrategias": [],
+            "actividades": [
+              {
+                "titulo": "Actividad 1: Lectura del cuento",
+                "pasos": [
+                  "Se lee el cuento \"El Patito Juan\" en voz alta, enfatizando la importancia del respeto y la amistad.",
+                  "Se conversa sobre el mensaje del cuento y se fomenta la reflexión sobre el valor del respeto.",
+                  "Se invita a los niños a compartir sus opiniones y experiencias relacionadas con el tema."
+                ]
+              },
+              {
+                "titulo": "Actividad 2: Dramatización",
+                "pasos": [
+                  "Se divide al grupo en pequeños equipos.",
+                  "Cada equipo elige un personaje del cuento y crea una pequeña dramatización.",
+                  "Se presentan las dramatizaciones al resto del grupo."
+                ]
+              },
+              {
+                "titulo": "Actividad 3: Dibujo libre",
+                "pasos": [
+                  "Se entrega a cada niño una hoja de papel y crayolas.",
+                  "Se les invita a dibujar libremente sobre el cuento, su personaje favorito o el mensaje que les dejó.",
+                  "Se comparte y se conversa sobre los dibujos."
+                ]
+              }
+            ],
+            "materiales": [
+              "Cuento \"El Patito Juan\"",
+              "Hoja de papel para cada niño",
+              "Crayolas"
+            ]
+          },
+          "cierre": {
+            "estrategias": [
+              "Socialización: Se invita a los niños a compartir lo que más les gustó de la sesión y lo que aprendieron.",
+              "Refuerzo de lo aprendido: Se recuerda la importancia del respeto en nuestras vidas y cómo podemos practicarlo diariamente.",
+              "Canción de despedida: Se canta la canción \"Adiós, amigos\" para finalizar la sesión."
+            ],
+            "materiales": [
+              "Parlantes para la canción"
+            ]
+          }
+        },
+        "recursosDidacticos": []
+      }
+    ]
+  }
+}
