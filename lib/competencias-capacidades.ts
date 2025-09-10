@@ -150,23 +150,71 @@ export const COMPETENCIAS_CAPACIDADES: CompetenciasCapacidades = {
     ]
   }
 };
-function norm(s?: string) { return (s ?? "").toLowerCase().replace(/\s+/g, " ").trim(); }
+// Normalizador simple
+function norm(s?: string) {
+  return (s ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim();
+}
 
-// Helper para mapear con tolerancia a espacios/mayúsculas
-export function getCompetenciaYCapacidades(areaIn: string, compIn?: string) {
+type Hints = {
+  capacidades?: string[]; // capacidades seleccionadas en la UI (opcional)
+  tema?: string;          // tema ingresado en la UI (opcional)
+};
+
+export function getCompetenciaYCapacidades(
+  areaIn: string,
+  compIn?: string,
+  hints?: Hints
+) {
   const areaKey = Object.keys(COMPETENCIAS_CAPACIDADES)
     .find(k => norm(k) === norm(areaIn));
   const areaMap = areaKey ? COMPETENCIAS_CAPACIDADES[areaKey] : undefined;
+  if (!areaMap) return { areaKey: undefined as string | undefined, compKey: undefined as string | undefined, capacidades: [] as string[] };
 
-  const compKey = areaMap
-    ? (compIn
-        ? Object.keys(areaMap).find(k => norm(k) === norm(compIn)) ?? Object.keys(areaMap)[0]
-        : Object.keys(areaMap)[0])
-    : undefined;
+  const compKeys = Object.keys(areaMap);
 
-  const capacidades = compKey ? (areaMap as any)[compKey] as string[] : [];
-  return { areaKey, compKey, capacidades };
-}  
+  // 1) Intento exacto
+  if (compIn) {
+    const exact = compKeys.find(k => norm(k) === norm(compIn));
+    if (exact) return { areaKey, compKey: exact, capacidades: areaMap[exact] };
+  }
+
+  // 2) Intento flexible (prefijo/substring)
+  if (compIn) {
+    const n = norm(compIn);
+    const pref = compKeys.find(k => norm(k).startsWith(n));
+    if (pref) return { areaKey, compKey: pref, capacidades: areaMap[pref] };
+    const sub = compKeys.find(k => norm(k).includes(n));
+    if (sub) return { areaKey, compKey: sub, capacidades: areaMap[sub] };
+  }
+
+  // 3) Deducción por capacidades (si la UI envía alguna)
+  const hintCaps = (hints?.capacidades ?? []).map(norm).filter(Boolean);
+  if (hintCaps.length) {
+    let best: { key: string; score: number } | null = null;
+    for (const k of compKeys) {
+      const caps = (areaMap[k] ?? []).map(norm);
+      const score = hintCaps.reduce((acc, c) => acc + (caps.some(x => x.includes(c) || c.includes(x)) ? 1 : 0), 0);
+      if (!best || score > best.score) best = { key: k, score };
+    }
+    if (best && best.score > 0) {
+      return { areaKey, compKey: best.key, capacidades: areaMap[best.key] };
+    }
+  }
+
+  // 4) Heurística por tema (ej. "círculo", "figura", "geométric")
+  const tema = norm(hints?.tema);
+  if (tema) {
+    const geom = /círcul|circul|figura|geometric|forma|movim|ubic|localiz/.test(tema);
+    if (geom) {
+      const geoKey = compKeys.find(k => /forma|movim|localiz|geomet/i.test(k));
+      if (geoKey) return { areaKey, compKey: geoKey, capacidades: areaMap[geoKey] };
+    }
+  }
+
+  // 5) Fallback: la primera competencia del área
+  const first = compKeys[0];
+  return { areaKey, compKey: first, capacidades: areaMap[first] };
+}
 export const AREAS = Object.keys(COMPETENCIAS_CAPACIDADES);
 
 

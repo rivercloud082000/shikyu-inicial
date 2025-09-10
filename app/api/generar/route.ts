@@ -497,9 +497,18 @@ export async function POST(req: NextRequest) {
 
     // 5) Forzar área/competencia/capacidades según tu tabla oficial
     const { areaKey, compKey, capacidades } = getCompetenciaYCapacidades(
-      payload.area,
-      payload.competencia
-    );
+  payload.area,
+  payload.competencia,
+  {
+    capacidades: Array.isArray((payload as any).capacidades)
+      ? (payload as any).capacidades
+      : (typeof (payload as any).capacidades === "string"
+          ? (payload as any).capacidades.split(/[\n,;]+/).map((s: string) => s.trim()).filter(Boolean)
+          : []),
+    tema: (payload as any).tema
+  }
+);
+
     if (!areaKey || !compKey || capacidades.length === 0) {
       return NextResponse.json(
         { success: false, error: "Área/competencia no válidas según MINEDU" },
