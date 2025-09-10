@@ -609,7 +609,7 @@ ${capacidades.map((c) => `- ${c}`).join("\n")}
       sesionN: String(d.numeroSesion ?? d.sesionN ?? (payload as any).numeroSesion ?? ""),
 
       // Tabla II (Propósito/Evaluación)
-      competencia: String(data.competencia ?? d.competencia ?? f.competencia ?? ""),
+      competencia: String(compKey),
       capacidades: toStr(Array.isArray(data.capacidades) ? data.capacidades : (d.capacidades ?? f.capacidades)),
       desempenos: toStr(f.desempenos ?? f.desempenosPrecisados ?? d.desempenos),
       evidenciaAprendizaje: toStr(f.evidenciaAprendizaje ?? d.evidenciaAprendizaje),
@@ -676,7 +676,8 @@ ${capacidades.map((c) => `- ${c}`).join("\n")}
       markers.desempenos = drop(markers.desempenos);
       markers.evidenciaAprendizaje = drop(markers.evidenciaAprendizaje);
       markers.criteriosEvaluacion = drop(markers.criteriosEvaluacion);
-      markers.competencia = drop(markers.competencia);
+      markers.competencia = dropValorFromText(markers.competencia, valorStr, /* bulleted */ false);
+
 
       // Reescritura de evidencias a frases centradas en el estudiante
       markers.evidenciaAprendizaje = rewriteEvidencias(markers.evidenciaAprendizaje);
@@ -788,7 +789,7 @@ ${capacidades.map((c) => `- ${c}`).join("\n")}
     {
       const valorFinal = String((payload as any).valor ?? d?.valor ?? f?.valor ?? "").trim();
       const PLAIN_FIELDS = new Set([
-        "tituloSesion", "grado", "bimestre", "area", "experiencia", "docente", "fecha", "sesionN",
+        "tituloSesion", "grado", "bimestre", "area", "experiencia", "docente", "fecha", "sesionN", "competencia"
       ]);
 
       for (const k of Object.keys(markers)) {
