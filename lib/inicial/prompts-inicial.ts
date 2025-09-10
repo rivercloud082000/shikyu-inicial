@@ -85,7 +85,7 @@ export interface InicialRequest {
   numeroSesion?: number;
 }
 
-export function buildUserPromptInicial(p: InicialRequest): string {
+export function buildUserPromptInicial(p: InicialRequest, compKey: string): string {
   const enf = Array.isArray(p.enfoquesTransversales) ? p.enfoquesTransversales.join(", ") : "";
   const acc = Array.isArray(p.accionesObservables) ? p.accionesObservables.join(", ") : "";
 

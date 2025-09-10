@@ -131,7 +131,7 @@ export const COMPETENCIAS_CAPACIDADES: CompetenciasCapacidades = {
       "Explora diferentes símbolos y expresiones religiosas presentes en su cultura"
     ]
   },
-  "Arte  y Cultura":{
+  "Arte y Cultura":{
     "APRECIA DE MANERA CRÍTICA MANIFESTACIONES ARTÍSTICOS-CULTURALES.": [
       "Percibe manifestaciones artístico-culturales",
       "Contextualiza las manifestaciones artístico-culturales",
@@ -150,7 +150,23 @@ export const COMPETENCIAS_CAPACIDADES: CompetenciasCapacidades = {
     ]
   }
 };
-  
+function norm(s?: string) { return (s ?? "").toLowerCase().replace(/\s+/g, " ").trim(); }
+
+// Helper para mapear con tolerancia a espacios/mayúsculas
+export function getCompetenciaYCapacidades(areaIn: string, compIn?: string) {
+  const areaKey = Object.keys(COMPETENCIAS_CAPACIDADES)
+    .find(k => norm(k) === norm(areaIn));
+  const areaMap = areaKey ? COMPETENCIAS_CAPACIDADES[areaKey] : undefined;
+
+  const compKey = areaMap
+    ? (compIn
+        ? Object.keys(areaMap).find(k => norm(k) === norm(compIn)) ?? Object.keys(areaMap)[0]
+        : Object.keys(areaMap)[0])
+    : undefined;
+
+  const capacidades = compKey ? (areaMap as any)[compKey] as string[] : [];
+  return { areaKey, compKey, capacidades };
+}  
 export const AREAS = Object.keys(COMPETENCIAS_CAPACIDADES);
 
 

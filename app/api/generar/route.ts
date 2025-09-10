@@ -8,6 +8,8 @@ import { ENFOQUES_DETALLE } from "@/lib/inicial/enfoques";
 // Exclusivo de INICIAL
 import { inicialReqSchema } from "@/lib/inicial/schema";
 import { buildUserPromptInicial, SYSTEM_INICIAL } from "@/lib/inicial/prompts-inicial";
+import { getCompetenciaYCapacidades } from "@/lib/competencias-capacidades";
+
 
 // (Opcional) escribir out-session.json para scripts/make-markers.js
 import fs from "node:fs";
@@ -15,6 +17,9 @@ import path from "node:path";
 
 // (opcional) fuerza runtime Node si alguna vez lo llevas a serverless
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+
 
 /* --------------------------- Utils --------------------------- */
 function withTimeout<T>(p: Promise<T>, ms = 240_000): Promise<T> {
@@ -466,11 +471,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "JSON inválido" }, { status: 400 });
     }
 
-    // 2) Provider (fuera del schema, por si el schema es strict)
+    // 2) Provider
     const rawProvider =
       body?.provider === "cohere" || body?.provider === "ollama-mistral"
         ? body.provider
         : "cohere";
+    const provider: "cohere" | "ollama-mistral" = rawProvider;
 
     // 3) Normalizamos grado y quitamos provider antes de validar
     const { provider: _ignore, ...candidate } = body ?? {};
@@ -487,20 +493,50 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    const payload = parsed.data;
-    const provider: "cohere" | "ollama-mistral" = rawProvider;
+    const payload = parsed.data as typeof parsed.data & { area: string; competencia?: string };
 
-    // 5) Prompts de INICIAL
-    const system = SYSTEM_INICIAL;
-    const prompt = buildUserPromptInicial(payload);
+    // 5) Forzar área/competencia/capacidades según tu tabla oficial
+    const { areaKey, compKey, capacidades } = getCompetenciaYCapacidades(
+      payload.area,
+      payload.competencia
+    );
+    if (!areaKey || !compKey || capacidades.length === 0) {
+      return NextResponse.json(
+        { success: false, error: "Área/competencia no válidas según MINEDU" },
+        { status: 400 }
+      );
+    }
 
-    // 6) Llamada a la IA (usa tu providers.ts)
+    // 6) Reglas duras para el prompt
+    const hardRules = `
+REGLAS ESTRICTAS (NO INCUMPLIR):
+- Área: "${areaKey}" (invariable)
+- Competencia: "${compKey}" (exacta, no inventar otra)
+- Capacidad(es) permitidas (usar solo de esta lista, no agregar otras):
+${capacidades.map((c) => `• ${c}`).join("\n")}
+- Si el usuario no selecciona capacidad, elige SOLO de esa lista.
+- No cambies nombres. No mezcles competencias de otras áreas.
+`.trim();
+
+    // 7) Prompts de INICIAL (inyectamos reglas en system y competencia canónica al prompt)
+    const system = (SYSTEM_INICIAL + "\n" + hardRules).trim();
+
+    // Si tu builder soporta pasar competencia, hazlo; si no, igual la reforzamos en el prompt
+    let prompt = buildUserPromptInicial(payload, compKey);
+
+    prompt += `
+
+[CAPACIDADES PERMITIDAS – USAR SOLO ESTAS]
+${capacidades.map((c) => `- ${c}`).join("\n")}
+`.trim();
+
+    // 8) Llamada a la IA con timeout
     const raw = await withTimeout(
       generateSessionJSON({ provider, system, prompt, temperature: 0.2 }),
       240_000
     );
 
-    // 7) Limpieza / parse robusto
+    // 9) Limpieza / parse robusto
     const rawStr = typeof raw === "string" ? raw : JSON.stringify(raw);
     const cleaned = rawStr
       .replace(/\\u[\da-f]{0,3}[^a-f0-9]/gi, "")
@@ -523,365 +559,270 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 8) Normalización ligera (Inicial suele usar una fila principal)
-    const d = data?.datos ?? {};
-    const f = (data?.filas?.[0] ?? data?.fila ?? {}) as Record<string, any>;
+    // 10) Blindaje final: área/competencia fijas y capacidades filtradas
+    data.area = areaKey;
+    data.competencia = compKey;
+    if (Array.isArray(data.capacidades)) {
+      data.capacidades = data.capacidades.filter((c: string) =>
+        capacidades.some((allow) => norm(allow) === norm(c))
+      );
+    }
+    if (!Array.isArray(data.capacidades) || data.capacidades.length === 0) {
+      data.capacidades = capacidades.slice(0, 2);
+    }
 
-/* ====== PASO 3: aplicar refuerzo de estructura ====== */
-const temaSesion = (payload as any).tema ?? f?.tituloSesion ?? "Actividad";
-enforceEstructuraInicial(
-  f,
-  temaSesion
-);
+    // === Definir d y f para el resto de tu pipeline (evita "Cannot find name 'f'")
+    const d: Record<string, any> = data?.datos ?? {};
+    const f: Record<string, any> = (data?.filas?.[0] ?? data?.fila ?? {}) as Record<string, any>;
 
-function formatActividades(acts?: Array<{ titulo?: string; pasos?: string[] }>): string {
-  if (!Array.isArray(acts) || !acts.length) return "";
-  const out: string[] = [];
-  acts.forEach((a, i) => {
-    const titulo = (a?.titulo ?? `Actividad ${i + 1}`).trim();
-    out.push(`${titulo}`);
-    if (Array.isArray(a?.pasos)) {
-      a!.pasos!.forEach(p => {
-        const s = String(p ?? "").trim();
-        if (s) out.push(`  • ${s}`);
+    // ====== Refuerzo de estructura (usa tus helpers ya definidos) ======
+    const temaSesion = (payload as any).tema ?? f?.tituloSesion ?? "Actividad";
+    enforceEstructuraInicial(f, temaSesion);
+
+    // --- util local por si no lo tienes arriba; si ya lo tienes, puedes borrar esta const local
+    const formatActividades = (acts?: Array<{ titulo?: string; pasos?: string[] }>): string => {
+      if (!Array.isArray(acts) || !acts.length) return "";
+      const out: string[] = [];
+      acts.forEach((a, i) => {
+        const titulo = (a?.titulo ?? `Actividad ${i + 1}`).trim();
+        out.push(`${titulo}`);
+        if (Array.isArray(a?.pasos)) {
+          a!.pasos!.forEach(p => {
+            const s = String(p ?? "").trim();
+            if (s) out.push(`  • ${s}`);
+          });
+        }
       });
+      return out.join("\n");
+    };
+
+    // ===== Construcción de markers (idéntica a tu flujo, con d/f ya definidos) =====
+    let markers: any = {
+      // Encabezado
+      tituloSesion: String(f.tituloSesion ?? d.tituloSesion ?? "SESIÓN DE APRENDIZAJE"),
+      grado: String(d.grado ?? payload.grado ?? ""),
+      bimestre: String(d.bimestre ?? payload.bimestre ?? ""),
+      area: String(d.area ?? payload.area ?? ""),
+      experiencia: String(d.experiencia ?? payload.experiencia ?? ""),
+      docente: String(d.docente ?? payload.docente ?? ""),
+      fecha: String(d.fecha ?? payload.fecha ?? ""),
+      sesionN: String(d.numeroSesion ?? d.sesionN ?? (payload as any).numeroSesion ?? ""),
+
+      // Tabla II (Propósito/Evaluación)
+      competencia: String(data.competencia ?? d.competencia ?? f.competencia ?? ""),
+      capacidades: toStr(Array.isArray(data.capacidades) ? data.capacidades : (d.capacidades ?? f.capacidades)),
+      desempenos: toStr(f.desempenos ?? f.desempenosPrecisados ?? d.desempenos),
+      evidenciaAprendizaje: toStr(f.evidenciaAprendizaje ?? d.evidenciaAprendizaje),
+      criteriosEvaluacion: toStr(f.criteriosEvaluacion ?? d.criteriosEvaluacion),
+      instrumento: toStr(f.instrumento ?? d.instrumento ?? "Evaluación cualitativa-Cuantitativa"),
+
+      // Enfoques / Valor / Acciones
+      enfoquesTransversales: toStr(d.enfoquesTransversales ?? f.enfoquesTransversales ?? (payload as any).enfoquesTransversales),
+      valor: String(d.valor ?? f.valor ?? (payload as any).valor ?? ""),
+      acciones: toStr(d.acciones ?? f.acciones ?? f.accionesObservables ?? (payload as any).accionesObservables),
+
+      // Momentos + Materiales
+      inicio: (() => {
+        const estr = toStr(f?.momentos?.inicio?.estrategias);
+        const acts = formatActividades(f?.momentos?.inicio?.actividades);
+        return [estr, acts].filter(Boolean).join("\n");
+      })(),
+      inicioM: toStr(f?.momentos?.inicio?.materiales ?? []),
+
+      desarrollo: (() => {
+        const estr = toStr(f?.momentos?.desarrollo?.estrategias);
+        const acts = formatActividades(f?.momentos?.desarrollo?.actividades);
+        return [estr, acts].filter(Boolean).join("\n");
+      })(),
+      desarrolloM: toStr(f?.momentos?.desarrollo?.materiales ?? []),
+
+      cierre: (() => {
+        const estr = toStr(f?.momentos?.cierre?.estrategias);
+        const acts = formatActividades(f?.momentos?.cierre?.actividades);
+        return [estr, acts].filter(Boolean).join("\n");
+      })(),
+      cierreM: toStr(f?.momentos?.cierre?.materiales ?? []),
+    };
+
+    /* ===== Correcciones finales ===== */
+
+    // 1) Evidencias ≠ Instrumentos: saca instrumentos de evidencias
+    {
+      const evArr = convertirAArray(markers.evidenciaAprendizaje);
+      const instFromEv: string[] = [];
+      const evClean = evArr.filter((x) => {
+        if (INSTRUMENT_PATTERNS.some((r) => r.test(x))) { instFromEv.push(x); return false; }
+        return true;
+      });
+
+      const instArr = convertirAArray(markers.instrumento).concat(instFromEv);
+      const evFinal = evClean.length ? evClean : [
+        "Producto: hoja de trabajo/dibujo terminado relacionado con el tema",
+        "Participación observable en la dramatización o actividad principal"
+      ];
+
+      markers.evidenciaAprendizaje = toStr(evFinal);
+      markers.instrumento = toStr(instArr.length ? instArr : ["Lista de cotejo", "Observación directa"]);
     }
-  });
-  return out.join("\n");
-}
 
+    // 2) El VALOR no debe aparecer en ningún texto (solo en su casilla {valor})
+    {
+      const valorStr = String((payload as any).valor ?? "").trim();
+      const drop = (s?: string) => dropValorFromText(s, valorStr);
 
-  // 👇 Llama al normalizador
-  // ensure3Activities(f, (d.tema || f.tituloSesion || "").toString());
+      markers.inicio = drop(markers.inicio);
+      markers.desarrollo = drop(markers.desarrollo);
+      markers.cierre = drop(markers.cierre);
+      markers.desempenos = drop(markers.desempenos);
+      markers.evidenciaAprendizaje = drop(markers.evidenciaAprendizaje);
+      markers.criteriosEvaluacion = drop(markers.criteriosEvaluacion);
+      markers.competencia = drop(markers.competencia);
 
-  // Arreglo de tipos por si llegan como string
-  f.recursosDidacticos = convertirAArray(f.recursosDidacticos);
-  f.instrumento = convertirAArray(f.instrumento);
-  f.criteriosEvaluacion = convertirAArray(f.criteriosEvaluacion);
-  f.evidenciaAprendizaje = convertirAArray(f.evidenciaAprendizaje);
-  d.capacidades = convertirAArray(d.capacidades);
-  d.enfoquesTransversales = convertirAArray((d as any).enfoquesTransversales ?? (f as any).enfoquesTransversales ?? []);
-  d.acciones = convertirAArray((d as any).acciones ?? (f as any).accionesObservables ?? []);
-
-  // Título desde payload plano si falta
-  const tituloCliente =
-    (payload as any).tituloSesion ??
-    (payload as any).titulo ??
-    ((payload as any).tema ? `SESIÓN: ${(payload as any).tema}` : "");
-  if (!f.tituloSesion && tituloCliente) f.tituloSesion = tituloCliente;
-
-  // 9) Marcadores EXACTOS para tu plantilla DOCX
-  let markers: any = {
-    // Encabezado
-    tituloSesion: String(f.tituloSesion ?? d.tituloSesion ?? "SESIÓN DE APRENDIZAJE"),
-    grado: String(d.grado ?? payload.grado ?? ""),
-    bimestre: String(d.bimestre ?? payload.bimestre ?? ""),
-    area: String(d.area ?? payload.area ?? ""),
-    experiencia: String(d.experiencia ?? payload.experiencia ?? ""),
-    docente: String(d.docente ?? payload.docente ?? ""),
-    fecha: String(d.fecha ?? payload.fecha ?? ""),
-    sesionN: String(d.numeroSesion ?? d.sesionN ?? (payload as any).numeroSesion ?? ""),
-
-    // Tabla II (Propósito/Evaluación)
-    competencia: String(d.competencia ?? f.competencia ?? ""),
-    capacidades: toStr(d.capacidades?.length ? d.capacidades : f.capacidades),
-    desempenos: toStr(f.desempenos ?? f.desempenosPrecisados ?? d.desempenos),
-    evidenciaAprendizaje: toStr(f.evidenciaAprendizaje ?? d.evidenciaAprendizaje),
-    criteriosEvaluacion: toStr(f.criteriosEvaluacion ?? d.criteriosEvaluacion),
-    instrumento: toStr(f.instrumento ?? d.instrumento ?? "Evaluación cualitativa-Cuantitativa"),
-
-    // Enfoques / Valor / Acciones
-    enfoquesTransversales: toStr(d.enfoquesTransversales ?? f.enfoquesTransversales ?? (payload as any).enfoquesTransversales),
-    valor: String(d.valor ?? f.valor ?? (payload as any).valor ?? ""),
-    acciones: toStr(d.acciones ?? f.acciones ?? f.accionesObservables ?? (payload as any).accionesObservables),
-
-    // Momentos + Materiales (los *M* son los materiales)
-inicio: (() => {
-  const estr = toStr(f?.momentos?.inicio?.estrategias);
-  const acts = formatActividades(f?.momentos?.inicio?.actividades);
-  return [estr, acts].filter(Boolean).join("\n");
-})(),
-inicioM: toStr(f?.momentos?.inicio?.materiales ?? []),
-
-desarrollo: (() => {
-  const estr = toStr(f?.momentos?.desarrollo?.estrategias);
-  const acts = formatActividades(f?.momentos?.desarrollo?.actividades);
-  return [estr, acts].filter(Boolean).join("\n");
-})(),
-desarrolloM: toStr(f?.momentos?.desarrollo?.materiales ?? []),
-
-cierre: (() => {
-  const estr = toStr(f?.momentos?.cierre?.estrategias);
-  const acts = formatActividades(f?.momentos?.cierre?.actividades);
-  return [estr, acts].filter(Boolean).join("\n");
-})(),
-cierreM: toStr(f?.momentos?.cierre?.materiales ?? []),
-
-  };
-
-  /* ===== Correcciones finales ===== */
-
-// 1) Evidencias ≠ Instrumentos: saca instrumentos de evidencias
-{
-  const evArr = convertirAArray(markers.evidenciaAprendizaje);
-  const instFromEv: string[] = [];
-  const evClean = evArr.filter((x) => {
-    if (INSTRUMENT_PATTERNS.some((r) => r.test(x))) { instFromEv.push(x); return false; }
-    return true;
-  });
-
-  const instArr = convertirAArray(markers.instrumento).concat(instFromEv);
-  // Si se quedó sin evidencias, crea una mínima (producto del aprendizaje)
-  const evFinal = evClean.length ? evClean : [
-    "Producto: hoja de trabajo/dibujo terminado relacionado con el tema",
-    "Participación observable en la dramatización o actividad principal"
-  ];
-
-  markers.evidenciaAprendizaje = toStr(evFinal);
-  markers.instrumento = toStr(instArr.length ? instArr : ["Lista de cotejo", "Observación directa"]);
-}
-
-
-{
-  const valorStr = String((payload as any).valor ?? "").trim();
-  const tema = String((payload as any).tema ?? f?.tituloSesion ?? "el tema");
-
-// 2) El VALOR no debe aparecer en ningún texto (solo en su casilla {valor})
-{
-  const valorStr = String((payload as any).valor ?? "").trim();
-  const drop = (s?: string) => dropValorFromText(s, valorStr);
-
-  // Momentos
-  markers.inicio = drop(markers.inicio);
-  markers.desarrollo = drop(markers.desarrollo);
-  markers.cierre = drop(markers.cierre);
-
-  // Tabla de evaluación
-  markers.desempenos = drop(markers.desempenos);
-  markers.evidenciaAprendizaje = drop(markers.evidenciaAprendizaje);
-  markers.criteriosEvaluacion = drop(markers.criteriosEvaluacion);
-  markers.competencia = drop(markers.competencia);
-
-  // Reescritura de evidencias a frases centradas en el estudiante
-  markers.evidenciaAprendizaje = rewriteEvidencias(markers.evidenciaAprendizaje);
-}
-
-// 3) Enfoques con detalle (Nombre: definición breve)
-{
-  // Toma los enfoques del JSON ya normalizado o del payload
-  const enfNombres = convertirAArray(
-    (d as any).enfoquesTransversales ??
-    (f as any).enfoquesTransversales ??
-    (payload as any).enfoquesTransversales ?? []
-  );
-
-  const enfDetallados = enfNombres.map((name) => {
-    // Empareja por prefijo, para aceptar "Enfoque inclusivo" vs "Enfoque inclusivo o de atención a la diversidad"
-    const key = Object.keys(ENFOQUES_DETALLE).find(k => k.toLowerCase().startsWith(name.toLowerCase()));
-    return key ? `${key}: ${ENFOQUES_DETALLE[key]}` : name;
-  });
-
-  if (enfDetallados.length) {
-    markers.enfoquesTransversales = toStr(enfDetallados);
-  }
-}
-
-// 5) Evidencias y Acciones observables centradas en el estudiante (y sin colarse el VALOR)
-{
-  const tema = (payload as any).tema ?? (f?.tituloSesion ?? "el tema");
-
-  const limpiar = (txt?: string) => {
-    // quita “puntual/puntuales/puntualidad/puntualmente” por si viniera en evidencias/acciones
-    const sinValor = (s: string) =>
-      s.replace(/\bpuntual[a-záéíóúüñ]*\b/gi, "").replace(/\s+/g, " ").trim();
-
-    return convertirAArray(txt).map(sinValor).filter(Boolean);
-  };
-
-  // ---- Evidencias de aprendizaje ----
-  let evid = limpiar(markers.evidenciaAprendizaje);
-
-  // Si están vacías o suenan a instrumentos/documentos, propón 3 evidencias simples del estudiante
-  if (
-    evid.length === 0 ||
-    /hoja\s+de\s+trabajo|lista\s+de\s+cotejo|observaci(?:ó|o)n|rúbri?ca/i.test(evid.join(" "))
-  ) {
-    evid = buildEvidenciasAprendizaje(tema);
-  }
-  markers.evidenciaAprendizaje = toStr(evid);
-
-  // ---- Acciones observables ----
-  let actsObs = limpiar(markers.acciones);
-  // Si están vacías o son demasiado genéricas (“escucha/participa” solamente), dale algo más ligado al aprendizaje
-  if (
-    actsObs.length === 0 ||
-    actsObs.every((x) => /escucha|participa/i.test(x))
-  ) {
-    actsObs = buildAccionesObservables(tema);
-  }
-  markers.acciones = toStr(actsObs);
-}
-
-
-
-// 4) Limpieza de acentos/ñ/bullets en TODOS los campos de markers
-markers = deepCleanStrings(markers);
- 
-
-  const empty = (s?: string) => !s || !String(s).trim();
-  const bullets = (arr: string[]) => toStr(arr);
-
-  /* --- Fallbacks neutrales si algo quedó vacío (según área/tema) --- */
-{
-  const temaFallback = String((payload as any).tema ?? f?.tituloSesion ?? "el tema");
-  const areaLower = String(d.area ?? payload.area ?? "").toLowerCase();
-
-  const isEmpty = (s?: string) => !s || !String(s).trim();
-
-  // Competencia por área (si falta)
-  if (isEmpty(markers.competencia)) {
-    if (areaLower.includes("ingl")) {
-      markers.competencia = "Se comunica oralmente en inglés como lengua extranjera.";
-    } else if (areaLower.includes("comunica")) {
-      markers.competencia = "Se comunica oralmente en su lengua materna.";
-    } else if (areaLower.includes("personal")) {
-      markers.competencia = "Construye su identidad y convive y participa democráticamente.";
-    } else if (areaLower.includes("ciencia")) {
-      markers.competencia = "Indaga mediante acciones para construir sus conocimientos.";
-    } else if (areaLower.includes("psicom")) {
-      markers.competencia = "Se desenvuelve de manera autónoma a través de su motricidad.";
-    } else {
-      markers.competencia = "Explora, experimenta y describe su entorno a través del juego.";
+      // Reescritura de evidencias a frases centradas en el estudiante
+      markers.evidenciaAprendizaje = rewriteEvidencias(markers.evidenciaAprendizaje);
     }
+
+    // 3) Enfoques con detalle (Nombre: definición breve)
+    {
+      const enfNombres = convertirAArray(
+        (d as any).enfoquesTransversales ??
+        (f as any).enfoquesTransversales ??
+        (payload as any).enfoquesTransversales ?? []
+      );
+
+      const enfDetallados = enfNombres.map((name) => {
+        const key = Object.keys(ENFOQUES_DETALLE).find(k => k.toLowerCase().startsWith(name.toLowerCase()));
+        return key ? `${key}: ${ENFOQUES_DETALLE[key]}` : name;
+      });
+
+      if (enfDetallados.length) {
+        markers.enfoquesTransversales = toStr(enfDetallados);
+      }
+    }
+
+    // 4) Limpieza de acentos/ñ/bullets en TODOS los campos de markers
+    markers = deepCleanStrings(markers);
+
+    // 5) Fallbacks
+    {
+      const temaFallback = String((payload as any).tema ?? f?.tituloSesion ?? "el tema");
+      const areaLower = String(d.area ?? payload.area ?? "").toLowerCase();
+      const isEmpty = (s?: string) => !s || !String(s).trim();
+
+      if (isEmpty(markers.competencia)) {
+        if (areaLower.includes("ingl")) {
+          markers.competencia = "Se comunica oralmente en inglés como lengua extranjera.";
+        } else if (areaLower.includes("comunica")) {
+          markers.competencia = "Se comunica oralmente en su lengua materna.";
+        } else if (areaLower.includes("personal")) {
+          markers.competencia = "Construye su identidad y convive y participa democráticamente.";
+        } else if (areaLower.includes("ciencia")) {
+          markers.competencia = "Indaga mediante acciones para construir sus conocimientos.";
+        } else if (areaLower.includes("psicom")) {
+          markers.competencia = "Se desenvuelve de manera autónoma a través de su motricidad.";
+        } else {
+          markers.competencia = "Explora, experimenta y describe su entorno a través del juego.";
+        }
+      }
+
+      if (isEmpty(markers.capacidades)) {
+        markers.capacidades = toStr([
+          `Escucha y sigue consignas simples relacionadas con “${temaFallback}”.`,
+          `Expresa ideas o gestos sobre “${temaFallback}”.`
+        ]);
+      }
+
+      if (isEmpty(markers.desempenos)) {
+        markers.desempenos = toStr([
+          `Participa activamente en actividades sobre “${temaFallback}”.`,
+          `Demuestra comprensión mediante acciones u oralidad simple.`
+        ]);
+      }
+
+      if (isEmpty(markers.criteriosEvaluacion)) {
+        markers.criteriosEvaluacion = toStr([
+          `Participa y sigue consignas durante las actividades.`,
+          `Muestra comprensión de “${temaFallback}” con acciones/gestos o palabras.`,
+          `Trabaja con autonomía progresiva y respeta turnos.`,
+          `Comunica su producción o idea final de forma simple.`
+        ]);
+      }
+
+      if (isEmpty(markers.instrumento)) {
+        markers.instrumento = toStr(["Lista de cotejo", "Observación directa"]);
+      }
+
+      if (isEmpty(markers.inicio)) {
+        markers.inicio = toStr([
+          "Saludo lúdico.",
+          "Motivación: objeto o imagen del tema.",
+          "Saberes previos: preguntas simples."
+        ]);
+      }
+      if (isEmpty(markers.inicioM)) {
+        markers.inicioM = toStr(["tarjetas/láminas", "pizarra y plumones"]);
+      }
+      if (isEmpty(markers.desarrollo)) {
+        markers.desarrollo = toStr([
+          "Actividad 1 con pasos claros.",
+          "Actividad 2 con pasos claros.",
+          "Actividad 3 con pasos claros."
+        ]);
+      }
+      if (isEmpty(markers.desarrolloM)) {
+        markers.desarrolloM = toStr(["papel bond", "crayolas"]);
+      }
+      if (isEmpty(markers.cierre)) {
+        markers.cierre = toStr([
+          "Socialización del aprendizaje.",
+          "Refuerzo de la idea principal.",
+          "Canción de cierre."
+        ]);
+      }
+      if (isEmpty(markers.cierreM)) {
+        markers.cierreM = toStr(["parlantes/altavoz"]);
+      }
+    }
+
+    // ===== Purga FINAL del VALOR, manteniendo encabezados sin bullets =====
+    {
+      const valorFinal = String((payload as any).valor ?? d?.valor ?? f?.valor ?? "").trim();
+      const PLAIN_FIELDS = new Set([
+        "tituloSesion", "grado", "bimestre", "area", "experiencia", "docente", "fecha", "sesionN",
+      ]);
+
+      for (const k of Object.keys(markers)) {
+        if (k === "valor") continue;
+        const v = (markers as any)[k];
+        if (typeof v !== "string") continue;
+        const isPlain = PLAIN_FIELDS.has(k);
+        (markers as any)[k] = dropValorFromText(v, valorFinal, !isPlain);
+      }
+
+      markers = deepCleanStrings(markers);
+    }
+
+    // 10) (Opcional) Guardado local de out-session.json
+    try {
+      const outPath = path.resolve(process.cwd(), "out-session.json");
+      const toWrite = JSON.stringify({ success: true, data, markers }, null, 2);
+      fs.writeFileSync(outPath, ""); // limpiar
+      fs.writeFileSync(outPath, toWrite, "utf8");
+    } catch {
+      // ignorar si no hay FS persistente
+    }
+
+    // 11) Respuesta
+    return NextResponse.json({ success: true, data, markers }, { status: 200 });
+
+  } catch (error: any) {
+    console.error("❌ Error en /api/generar (inicial):", error);
+    return NextResponse.json(
+      { success: false, error: error?.message ?? "Error desconocido" },
+      { status: 500 }
+    );
   }
-markers = deepCleanStrings(markers);
-
-
-
-
-
-  // Capacidades (si faltan)
-  if (isEmpty(markers.capacidades)) {
-    markers.capacidades = toStr([
-      `Escucha y sigue consignas simples relacionadas con “${temaFallback}”.`,
-      `Expresa ideas o gestos sobre “${temaFallback}”.`
-    ]);
-  }
-
-  // Desempeños (si faltan)
-  if (isEmpty(markers.desempenos)) {
-    markers.desempenos = toStr([
-      `Participa activamente en actividades sobre “${temaFallback}”.`,
-      `Demuestra comprensión mediante acciones u oralidad simple.`
-    ]);
-  }
-
-  // Criterios (si faltan)
-  if (isEmpty(markers.criteriosEvaluacion)) {
-    markers.criteriosEvaluacion = toStr([
-      `Participa y sigue consignas durante las actividades.`,
-      `Muestra comprensión de “${temaFallback}” con acciones/gestos o palabras.`,
-      `Trabaja con autonomía progresiva y respeta turnos.`,
-      `Comunica su producción o idea final de forma simple.`
-    ]);
-  }
-
-  // Instrumentos (si faltan, tras separar de evidencias)
-  if (isEmpty(markers.instrumento)) {
-    markers.instrumento = toStr(["Lista de cotejo", "Observación directa"]);
-  }
-
-  // Momentos/materiales solo si quedaron totalmente vacíos
-  if (isEmpty(markers.inicio)) {
-    markers.inicio = toStr([
-      "Saludo lúdico.",
-      "Motivación: objeto o imagen del tema.",
-      "Saberes previos: preguntas simples."
-    ]);
-  }
-  if (isEmpty(markers.inicioM)) {
-    markers.inicioM = toStr(["tarjetas/láminas", "pizarra y plumones"]);
-  }
-  if (isEmpty(markers.desarrollo)) {
-    markers.desarrollo = toStr([
-      "Actividad 1 con pasos claros.",
-      "Actividad 2 con pasos claros.",
-      "Actividad 3 con pasos claros."
-    ]);
-  }
-  if (isEmpty(markers.desarrolloM)) {
-    markers.desarrolloM = toStr(["papel bond", "crayolas"]);
-  }
-  if (isEmpty(markers.cierre)) {
-    markers.cierre = toStr([
-      "Socialización del aprendizaje.",
-      "Refuerzo de la idea principal.",
-      "Canción de cierre."
-    ]);
-  }
-  if (isEmpty(markers.cierreM)) {
-    markers.cierreM = toStr(["parlantes/altavoz"]);
-  }
-} // <-- This closes the fallback block
-
-// ===== Purga FINAL del VALOR en todos los campos string =====
-// ===== Purga FINAL del VALOR en todos los campos string =====
-{
-  const valorFinal = String((payload as any).valor ?? d?.valor ?? f?.valor ?? "").trim();
-
-  // Campos de encabezado que deben quedar SIN viñetas
-  const PLAIN_FIELDS = new Set([
-    "tituloSesion",
-    "grado",
-    "bimestre",
-    "area",
-    "experiencia",
-    "docente",
-    "fecha",
-    "sesionN",
-  ]);
-
-  for (const k of Object.keys(markers)) {
-    // ¡NO toques el campo valor!
-    if (k === "valor") continue;
-
-    const v = (markers as any)[k];
-    if (typeof v !== "string") continue;
-
-    const isPlain = PLAIN_FIELDS.has(k);
-    // si es encabezado => sin viñetas; si no, mantenemos formato de lista
-    (markers as any)[k] = dropValorFromText(v, valorFinal, !isPlain);
-  }
-
-  // Limpieza final de mojibake, por si acaso
-  markers = deepCleanStrings(markers);
 }
-console.log("🔚 Purga FINAL aplicada");
-
-
-
-  // 3) Limpieza final de mojibake y espacios raros
-  markers = deepCleanStrings(markers);
-}
-
-
-  // 10) Guardado opcional para tu script (en local funciona; en serverless puede fallar)
-  try {
-    const outPath = path.resolve(process.cwd(), "out-session.json");
-    const toWrite = JSON.stringify({ success: true, data }, null, 2);
-    fs.writeFileSync(outPath, ""); // limpiar
-    fs.writeFileSync(outPath, toWrite, "utf8");
-  } catch {
-    // ignorar si no hay FS persistente
-  }
-
-  // 11) Respuesta
-  return NextResponse.json({ success: true, data, markers }, { status: 200 });
-} catch (error: any) {
-  console.error("❌ Error en /api/generar (inicial):", error);
-  return NextResponse.json(
-    { success: false, error: error?.message ?? "Error desconocido" },
-    { status: 500 }
-  );
-}
+function norm(s?: string) {
+  return (s ?? "").toLowerCase().replace(/\s+/g, " ").trim();
 }
