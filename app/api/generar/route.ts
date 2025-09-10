@@ -496,18 +496,18 @@ export async function POST(req: NextRequest) {
     const payload = parsed.data as typeof parsed.data & { area: string; competencia?: string };
 
     // 5) Forzar área/competencia/capacidades según tu tabla oficial
-    const { areaKey, compKey, capacidades } = getCompetenciaYCapacidades(
+    // Pistas desde el payload/body para mejorar el match:
+const capsHint = convertirAArray(
+  (payload as any).capacidades ?? (body as any)?.capacidades ?? ""
+);
+const temaHint = (payload as any).tema ?? (body as any)?.tema ?? "";
+
+const { areaKey, compKey, capacidades } = getCompetenciaYCapacidades(
   payload.area,
   payload.competencia,
-  {
-    capacidades: Array.isArray((payload as any).capacidades)
-      ? (payload as any).capacidades
-      : (typeof (payload as any).capacidades === "string"
-          ? (payload as any).capacidades.split(/[\n,;]+/).map((s: string) => s.trim()).filter(Boolean)
-          : []),
-    tema: (payload as any).tema
-  }
+  { capacidades: capsHint, tema: temaHint }
 );
+
 
     if (!areaKey || !compKey || capacidades.length === 0) {
       return NextResponse.json(

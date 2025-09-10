@@ -151,70 +151,112 @@ export const COMPETENCIAS_CAPACIDADES: CompetenciasCapacidades = {
   }
 };
 // Normalizador simple
+// --- Helpers internos ---
 function norm(s?: string) {
-  return (s ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim();
+  return (s ?? "")
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function tokens(s?: string) {
+  return norm(s).split(/[^a-z0-9]+/).filter(Boolean);
 }
 
 type Hints = {
-  capacidades?: string[]; // capacidades seleccionadas en la UI (opcional)
-  tema?: string;          // tema ingresado en la UI (opcional)
+  capacidades?: string[];
+  tema?: string;
 };
 
+/**
+ * Empareja competencia para CUALQUIER área:
+ * - exacto / prefijo / substring
+ * - por capacidades (similitud)
+ * - por tema (tokens + heurística suave)
+ * - si nada, toma la primera del área
+ */
 export function getCompetenciaYCapacidades(
   areaIn: string,
   compIn?: string,
   hints?: Hints
 ) {
-  const areaKey = Object.keys(COMPETENCIAS_CAPACIDADES)
-    .find(k => norm(k) === norm(areaIn));
+  const areaKey = Object.keys(COMPETENCIAS_CAPACIDADES).find(k => norm(k) === norm(areaIn));
   const areaMap = areaKey ? COMPETENCIAS_CAPACIDADES[areaKey] : undefined;
   if (!areaMap) return { areaKey: undefined as string | undefined, compKey: undefined as string | undefined, capacidades: [] as string[] };
 
   const compKeys = Object.keys(areaMap);
+  const compInNorm = norm(compIn);
+  const temaNorm = norm(hints?.tema);
+  const temaToks = new Set(tokens(temaNorm));
+  const capsHint = (hints?.capacidades ?? []).map(norm).filter(Boolean);
 
-  // 1) Intento exacto
-  if (compIn) {
-    const exact = compKeys.find(k => norm(k) === norm(compIn));
+  // 1) Exacto
+  if (compInNorm) {
+    const exact = compKeys.find(k => norm(k) === compInNorm);
     if (exact) return { areaKey, compKey: exact, capacidades: areaMap[exact] };
   }
-
-  // 2) Intento flexible (prefijo/substring)
-  if (compIn) {
-    const n = norm(compIn);
-    const pref = compKeys.find(k => norm(k).startsWith(n));
+  // 2) Prefijo / Substring
+  if (compInNorm) {
+    const pref = compKeys.find(k => norm(k).startsWith(compInNorm));
     if (pref) return { areaKey, compKey: pref, capacidades: areaMap[pref] };
-    const sub = compKeys.find(k => norm(k).includes(n));
+    const sub = compKeys.find(k => norm(k).includes(compInNorm));
     if (sub) return { areaKey, compKey: sub, capacidades: areaMap[sub] };
   }
 
-  // 3) Deducción por capacidades (si la UI envía alguna)
-  const hintCaps = (hints?.capacidades ?? []).map(norm).filter(Boolean);
-  if (hintCaps.length) {
-    let best: { key: string; score: number } | null = null;
-    for (const k of compKeys) {
-      const caps = (areaMap[k] ?? []).map(norm);
-      const score = hintCaps.reduce((acc, c) => acc + (caps.some(x => x.includes(c) || c.includes(x)) ? 1 : 0), 0);
-      if (!best || score > best.score) best = { key: k, score };
+  // 3) Scoring global (capacidades + tema + similitud con compIn)
+  let bestKey = "";
+  let bestScore = -1;
+
+  for (const k of compKeys) {
+    const nk = norm(k);
+    let score = 0;
+
+    // similitud con compIn (parcial)
+    if (compInNorm) {
+      if (nk.includes(compInNorm)) score += 2;
+      const overlapComp = tokens(compInNorm).filter(t => nk.includes(t)).length;
+      score += overlapComp;
     }
-    if (best && best.score > 0) {
-      return { areaKey, compKey: best.key, capacidades: areaMap[best.key] };
+
+    // similitud por capacidades
+    const capsOfK = (areaMap[k] ?? []).map(norm);
+    for (const c of capsHint) {
+      if (!c) continue;
+      if (capsOfK.some(x => x.includes(c) || c.includes(x))) score += 2; // match capacidad → +2
     }
+
+    // similitud por tema (tokens)
+    if (temaToks.size) {
+      const toksK = new Set(tokens(nk));
+      let hits = 0;
+      for (const t of temaToks) if (t.length >= 4 && toksK.has(t)) hits++;
+      score += hits;
+    }
+
+    // Heurística suave por palabras clave del tema (no atada al área)
+    if (/(circul|figura|geomet|forma|movim|localiz|ubic)/.test(temaNorm) && /forma|movim|localiz|geomet/.test(nk)) score += 3;
+    if (/(leyend|cuento|texto|leer|lectur|escrito)/.test(temaNorm) && /(lee|texto|lectur)/.test(nk)) score += 3;
+    if (/(escrib|traza|graf|dictado)/.test(temaNorm) && /(escribe|textos)/.test(nk)) score += 3;
+    if (/(oral|habla|expres|escuch)/.test(temaNorm) && /(oral|lengua\s+materna)/.test(nk)) score += 3;
+    if (/(indag|experimen|ciencia|tecnolog)/.test(temaNorm) && /(indaga|cient)/.test(nk)) score += 3;
+    if (/(motric|psicomotr|movim)/.test(temaNorm) && /(motric|autonoma|sociomotr)/.test(nk)) score += 3;
+    if (/(ingles|english)/.test(temaNorm) && /(ingl)/.test(nk)) score += 3;
+    if (/(identidad|convive|democra|bien comun|norma)/.test(temaNorm) && /(identidad|convive|democra|bien\s+comun)/.test(nk)) score += 3;
+    if (/(relig|dios|biblic)/.test(temaNorm) && /(relig|dios|encuentro)/.test(nk)) score += 3;
+    if (/(arte|musica|dibujo|ritmo|crea|proyecto)/.test(temaNorm) && /(aprecia|musica|dibujo|crea|proyectos)/.test(nk)) score += 3;
+    if (/(digital|tecnolog|comput|bloques|robot)/.test(temaNorm) && /(alfabet|digital|comput|pensamiento|creacion)/.test(nk)) score += 3;
+
+    if (score > bestScore) { bestScore = score; bestKey = k; }
   }
 
-  // 4) Heurística por tema (ej. "círculo", "figura", "geométric")
-  const tema = norm(hints?.tema);
-  if (tema) {
-    const geom = /círcul|circul|figura|geometric|forma|movim|ubic|localiz/.test(tema);
-    if (geom) {
-      const geoKey = compKeys.find(k => /forma|movim|localiz|geomet/i.test(k));
-      if (geoKey) return { areaKey, compKey: geoKey, capacidades: areaMap[geoKey] };
-    }
-  }
+  if (bestKey) return { areaKey, compKey: bestKey, capacidades: areaMap[bestKey] };
 
-  // 5) Fallback: la primera competencia del área
+  // 4) Fallback final
   const first = compKeys[0];
   return { areaKey, compKey: first, capacidades: areaMap[first] };
 }
+
 export const AREAS = Object.keys(COMPETENCIAS_CAPACIDADES);
 
 
