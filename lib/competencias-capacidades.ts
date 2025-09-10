@@ -131,7 +131,7 @@ export const COMPETENCIAS_CAPACIDADES: CompetenciasCapacidades = {
       "Explora diferentes símbolos y expresiones religiosas presentes en su cultura"
     ]
   },
-  "Arte  y Cuntura":{
+  "Arte  y Cultura":{
     "APRECIA DE MANERA CRÍTICA MANIFESTACIONES ARTÍSTICOS-CULTURALES.": [
       "Percibe manifestaciones artístico-culturales",
       "Contextualiza las manifestaciones artístico-culturales",
