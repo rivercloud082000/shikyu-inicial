@@ -26,7 +26,7 @@ export const inicialReqSchema = z
     valor: z.string().min(1).transform((s) => s.trim()),
     enfoquesTransversales: z
       .array(z.string().min(1).transform((s) => s.trim()))
-      .min(2)
+      .min(1)
       .max(4),
     accionesObservables: z
       .array(z.string().min(1).transform((s) => s.trim()))
