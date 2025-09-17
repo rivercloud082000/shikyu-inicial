@@ -26,22 +26,14 @@ export default function Home() {
 
       {/* 🔹 Título en la parte superior, centrado */}
       <div className="pt-6 text-center">
-        <h1 className="text-4xl font-extrabold text-white drop-shadow-lg animate-pulse">
-          Bienvenido a SestIA{" "}
-          <span
-            className="relative inline-block align-middle text-transparent bg-clip-text bg-gradient-to-r from-rose-300 via-pink-500 to-fuchsia-600"
-            style={{
-              backgroundImage:
-                "linear-gradient(90deg, #f9a8d4 0%, #ec4899 50%, #a21caf 100%)",
-              WebkitBackgroundClip: "text",
-              backgroundClip: "text",
-              color: "transparent",
-              WebkitTextStroke: "0.5px rgba(255,255,255,0.25)", // contorno sutil p/legibilidad
-            }}
-          >
-            Blossom
-          </span>
-        </h1>
+        <Image
+         src="/sestia-blossom.jpeg"
+         alt="SestIA Blossom – Generador Educativo"
+         width={380} // ajusta el tamaño según quieras
+         height={300}
+         className="mx-auto drop-shadow-lg animate-pulse"
+/>
+
       </div>
 
       {/* 🔹 Caja central con el acceso directo */}
@@ -110,7 +102,7 @@ export default function Home() {
 
         {/* Autor */}
         <div className="text-xs text-white/80">
-          Desarrollado por <strong className="text-blue-300">ERES Company</strong>
+          Desarrollado por <strong className="text-blue-300">ERES</strong>
         </div>
       </div>
     </main>
