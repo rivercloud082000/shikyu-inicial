@@ -2,21 +2,21 @@
   "success": true,
   "data": {
     "datos": {
-      "grado": "4 años",
+      "grado": "5 años",
       "bimestre": "III",
       "area": "Matemática",
-      "experiencia": "III",
-      "docente": "Haidy Quispe",
-      "fecha": "18/09/25",
-      "numeroSesion": 114,
+      "experiencia": "VI",
+      "docente": "Adrian Perez",
+      "fecha": "28/12/25",
+      "numeroSesion": 7,
       "competencia": "Resuelve problemas de cantidad",
       "capacidades": [
-        "Traduce cantidades a expresiones numéricas",
-        "Comunica su comprensión sobre los números y las operaciones"
+        "Identifica situaciones cotidianas que involucran cantidades y transformarlas en expresiones matemáticas sencillas",
+        "Expresa sus comprensiones y estrategias matemáticas de diversas maneras"
       ],
       "enfoquesTransversales": [
-        "Enfoque inclusivo o de atención a la diversidad",
-        "Enfoque intercultural"
+        "Enfoque de búsqueda de la excelencia",
+        "Enfoque de orientación al bien común"
       ],
       "valor": "Cooperación",
       "acciones": [
@@ -29,31 +29,59 @@
         "tituloSesion": "Explorando el cuadrado",
         "desempenos": [
           "Identifica y dibuja cuadrados en diferentes contextos",
-          "Cuenta y representa cantidades en cuadrados"
+          "Cuenta y representa cantidades en forma de cuadrado"
         ],
         "evidenciaAprendizaje": [
           "Dibujo de cuadrados en hoja de trabajo",
-          "Tarjetas con cantidades representadas en cuadrados"
+          "Construcción de figuras con material concreto"
         ],
         "criteriosEvaluacion": [
-          "Identifica correctamente los cuadrados entre otras figuras",
-          "Dibuja cuadrados con sus lados iguales",
-          "Cuenta y representa cantidades en cuadrados",
+          "Identifica correctamente las características de un cuadrado",
+          "Dibuja cuadrados con lados iguales y ángulos rectos",
+          "Cuenta y representa cantidades en forma de cuadrado",
           "Colabora con sus compañeros en las actividades"
         ],
-        "instrumento": [
-          "Lista de cotejo",
-          "Observación directa"
-        ],
+        "instrumento": {
+          "tipo": "DIARIO_CAMPO",
+          "tipoLabel": "Diario de campo",
+          "titulo": "Observación de la sesión sobre el cuadrado",
+          "instrucciones": "Registrar las observaciones durante la sesión, enfocándose en la participación y comprensión de los estudiantes sobre el cuadrado.",
+          "items": [
+            {
+              "indicador": "Identifica características del cuadrado",
+              "evidencia": "Respuestas orales y dibujo en hoja de trabajo"
+            },
+            {
+              "indicador": "Dibuja cuadrados con precisión",
+              "evidencia": "Hoja de trabajo con dibujos de cuadrados"
+            },
+            {
+              "indicador": "Cuenta y representa cantidades en cuadrado",
+              "evidencia": "Actividad de conteo y representación"
+            },
+            {
+              "indicador": "Colabora con sus compañeros",
+              "evidencia": "Participación en actividades grupales"
+            },
+            {
+              "indicador": "Escucha atentamente las instrucciones",
+              "evidencia": "Seguimiento de instrucciones durante las actividades"
+            },
+            {
+              "indicador": "Participa con orden",
+              "evidencia": "Comportamiento durante la sesión"
+            }
+          ]
+        },
         "momentos": {
           "inicio": {
             "estrategias": [
-              "Saludo lúdico: Canto de bienvenida con movimientos",
-              "Motivación: Mostrar láminas con cuadrados en objetos cotidianos",
-              "Saberes/Exploración previa: Preguntar qué saben sobre los cuadrados"
+              "Saludo lúdico: Canto de bienvenida con movimientos.",
+              "Motivación: Mostrar objetos cuadrados del aula y preguntar qué tienen en común.",
+              "Saberes/Exploración previa: Preguntar si conocen otras figuras y qué saben del cuadrado."
             ],
             "materiales": [
-              "Láminas con cuadrados",
+              "Láminas con objetos cuadrados",
               "Parlantes para canción"
             ]
           },
@@ -62,40 +90,39 @@
               {
                 "titulo": "Actividad 1: Cazadores de cuadrados",
                 "pasos": [
-                  "Paseo por el aula para encontrar objetos con forma de cuadrado",
-                  "Contar en voz alta los cuadrados encontrados",
-                  "Pegar una estrella en cada cuadrado encontrado"
+                  "Paseo por el aula para identificar objetos con forma de cuadrado.",
+                  "Contar y registrar cuántos cuadrados encontraron.",
+                  "Dibujar uno de los cuadrados encontrados en su hoja."
                 ]
               },
               {
-                "titulo": "Actividad 2: Dibujando cuadrados",
+                "titulo": "Actividad 2: Construyendo cuadrados",
                 "pasos": [
-                  "Entregar hojas de trabajo con cuadros sin terminar",
-                  "Completar los cuadros para convertirlos en cuadrados",
-                  "Colorear los cuadrados con crayolas"
+                  "Entregar material concreto (palitos o tarjetas) para armar cuadrados.",
+                  "Trabajar en parejas para construir cuadrados de diferentes tamaños.",
+                  "Contar los palitos o tarjetas usados en cada cuadrado."
                 ]
               },
               {
-                "titulo": "Actividad 3: Cuadrados con cantidades",
+                "titulo": "Actividad 3: Dibujando cuadrados",
                 "pasos": [
-                  "Repartir tarjetas con cuadrados y cantidades",
-                  "Colocar el número correcto de puntos en cada cuadrado",
-                  "Intercambiar tarjetas con un compañero y verificar"
+                  "Entregar hoja de trabajo con cuadros sin terminar.",
+                  "Completar los cuadros para convertirlos en cuadrados.",
+                  "Colorear los cuadrados dibujados."
                 ]
               }
             ],
             "materiales": [
+              "Palitos o tarjetas para construir",
               "Hojas de trabajo",
-              "Crayolas",
-              "Tarjetas con cuadrados y cantidades",
-              "Estrellas adhesivas"
+              "Crayolas"
             ]
           },
           "cierre": {
             "estrategias": [
-              "Socialización: Compartir lo aprendido sobre los cuadrados",
-              "Refuerzo de lo aprendido: Jugar a encontrar cuadrados en el aula",
-              "Canción de despedida: Canto sobre las formas geométricas"
+              "Socialización: Compartir los cuadrados dibujados y construidos.",
+              "Refuerzo de lo aprendido: Resaltar las características del cuadrado.",
+              "Canción de despedida: Canto relacionado con las formas geométricas."
             ],
             "materiales": [
               "Parlantes para canción"
@@ -113,27 +140,27 @@
   },
   "markers": {
     "tituloSesion": "Explorando el cuadrado",
-    "grado": "4 años",
+    "grado": "5 años",
     "bimestre": "III",
     "area": "Matemática",
-    "experiencia": "III",
-    "docente": "Haidy Quispe",
-    "fecha": "18/09/25",
-    "sesionN": "114",
+    "experiencia": "VI",
+    "docente": "Adrian Perez",
+    "fecha": "28/12/25",
+    "sesionN": "7",
     "competencia": "Resuelve problemas de cantidad",
     "capacidades": "• Traduce cantidades a expresiones numéricas\n• Comunica su comprensión sobre los números y las operaciones",
-    "desempenos": "• Identifica y dibuja cuadrados en diferentes contextos\n• Cuenta y representa cantidades en cuadrados",
-    "evidenciaAprendizaje": "• Realiza un dibujo de cuadrados en hoja de trabajo\n• Tarjetas con cantidades representadas en cuadrados",
-    "criteriosEvaluacion": "• Identifica correctamente los cuadrados entre otras figuras\n• Dibuja cuadrados con sus lados iguales\n• Cuenta y representa cantidades en cuadrados\n• Colabora con sus compañeros en las actividades",
-    "instrumento": "• Lista de cotejo\n• Observación directa",
-    "enfoquesTransversales": "• Enfoque inclusivo o de atención a la diversidad: Garantiza participación y aprendizaje de todos con adaptaciones culturales\n• lingüísticas\n• físicas o cognitivas.\n• Enfoque intercultural: Valora la diversidad cultural (saberes\n• lenguas\n• tradiciones) para fortalecer la identidad.",
+    "desempenos": "• Identifica y dibuja cuadrados en diferentes contextos\n• Cuenta y representa cantidades en forma de cuadrado",
+    "evidenciaAprendizaje": "• Realiza un dibujo de cuadrados en hoja de trabajo\n• Construcción de figuras con material concreto",
+    "criteriosEvaluacion": "• Identifica correctamente las características de un cuadrado\n• Dibuja cuadrados con lados iguales y ángulos rectos\n• Cuenta y representa cantidades en forma de cuadrado\n• Colabora con sus compañeros en las actividades",
+    "instrumento": "• [object Object]",
+    "enfoquesTransversales": "• Enfoque de búsqueda de la excelencia: Motiva el esfuerzo\n• la mejora continua y la valoración del progreso.\n• Enfoque de orientación al bien común: Fomenta solidaridad\n• empatía y responsabilidad colectiva\n• trabajo en equipo y cuidado de espacios.",
     "valor": "Cooperación",
     "acciones": "• Escucha con atención\n• Participa con orden",
-    "inicio": "• Saludo lúdico: Canto de bienvenida con movimientos\n• Motivación: Mostrar láminas con cuadrados en objetos cotidianos\n• Saberes/Exploración previa: Preguntar qué saben sobre los cuadrados",
-    "inicioM": "• Láminas con cuadrados\n• Parlantes para canción",
-    "desarrollo": "• Actividad 1: Cazadores de cuadrados\n• Paseo por el aula para encontrar objetos con forma de cuadrado\n• Contar en voz alta los cuadrados encontrados\n• Pegar una estrella en cada cuadrado encontrado\n• Actividad 2: Dibujando cuadrados\n• Entregar hojas de trabajo con cuadros sin terminar\n• Completar los cuadros para convertirlos en cuadrados\n• Colorear los cuadrados con crayolas\n• Actividad 3: Cuadrados con cantidades\n• Repartir tarjetas con cuadrados y cantidades\n• Colocar el número correcto de puntos en cada cuadrado\n• Intercambiar tarjetas con un compañero y verificar",
-    "desarrolloM": "• Hojas de trabajo\n• Crayolas\n• Tarjetas con cuadrados y cantidades\n• Estrellas adhesivas",
-    "cierre": "• Socialización: Compartir lo aprendido sobre los cuadrados\n• Refuerzo de lo aprendido: Jugar a encontrar cuadrados en el aula\n• Canción de despedida: Canto sobre las formas geométricas",
+    "inicio": "• Saludo lúdico: Canto de bienvenida con movimientos.\n• Motivación: Mostrar objetos cuadrados del aula y preguntar qué tienen en común.\n• Saberes/Exploración previa: Preguntar si conocen otras figuras y qué saben del cuadrado.",
+    "inicioM": "• Láminas con objetos cuadrados\n• Parlantes para canción",
+    "desarrollo": "• Actividad 1: Cazadores de cuadrados\n• Paseo por el aula para identificar objetos con forma de cuadrado.\n• Contar y registrar cuántos cuadrados encontraron.\n• Dibujar uno de los cuadrados encontrados en su hoja.\n• Actividad 2: Construyendo cuadrados\n• Entregar material concreto (palitos o tarjetas) para armar cuadrados.\n• Trabajar en parejas para construir cuadrados de diferentes tamaños.\n• Contar los palitos o tarjetas usados en cada cuadrado.\n• Actividad 3: Dibujando cuadrados\n• Entregar hoja de trabajo con cuadros sin terminar.\n• Completar los cuadros para convertirlos en cuadrados.\n• Colorear los cuadrados dibujados.",
+    "desarrolloM": "• Palitos o tarjetas para construir\n• Hojas de trabajo\n• Crayolas",
+    "cierre": "• Socialización: Compartir los cuadrados dibujados y construidos.\n• Refuerzo de lo aprendido: Resaltar las características del cuadrado.\n• Canción de despedida: Canto relacionado con las formas geométricas.",
     "cierreM": "• Parlantes para canción"
   }
 }

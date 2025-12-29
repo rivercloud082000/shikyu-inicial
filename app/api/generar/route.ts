@@ -1,4 +1,5 @@
 ﻿// app/api/generar/route.ts
+// app/api/generar/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { jsonrepair } from "jsonrepair";
 import { generateSessionJSON } from "@/lib/ai/providers";
@@ -460,6 +461,55 @@ function enforceEstructuraInicial(f: any, tema: string) {
     f.momentos[m].materiales = filtraMateriales(mats);
   });
 }
+// === Instrumentos (1 de 8) ===
+const INSTRUMENT_LABEL_MAP: Record<string, string> = {
+  GUIA_OBSERVACION: "Guía de observación",
+  LISTA_COTEJO: "Lista de cotejo",
+  ESCALA_VALORACION: "Escala de valoración",
+  RUBRICA_ANALITICA: "Rúbrica analítica",
+  REGISTRO_ANECDOTICO: "Registro anecdótico",
+  DIARIO_CAMPO: "Diario de campo",
+  LISTA_VERIFICACION: "Lista de verificación",
+  FICHA_SEGUIMIENTO: "Ficha de seguimiento",
+};
+
+function normalizeInstrumentType(v: any): string {
+  const s = String(v || "").trim().toUpperCase();
+  return INSTRUMENT_LABEL_MAP[s] ? s : "LISTA_COTEJO";
+}
+
+// fallback si la IA no devuelve instrumento
+function buildInstrumentFallback(params: {
+  tipo: string;
+  tipoLabel: string;
+  tema: string;
+  criterios: string;
+  evidencias: string;
+}) {
+  const criterios = convertirAArray(params.criterios);
+  const evidencias = convertirAArray(params.evidencias);
+  const itemsBase = (criterios.length ? criterios : [
+    "Participa en la actividad principal siguiendo consignas.",
+    "Identifica elementos del tema mediante juego/observación.",
+    "Comunica ideas con palabras o gestos sobre el tema.",
+    "Realiza su producción final de acuerdo a la consigna.",
+  ]);
+
+  const items = itemsBase.slice(0, 8).map((c, idx) => ({
+    indicador: c,
+    evidencia: evidencias[idx] || `Evidencia observable durante actividad sobre ${params.tema}.`,
+  }));
+
+  return {
+    tipo: params.tipo,
+    tipoLabel: params.tipoLabel,
+    titulo: `${params.tipoLabel} – ${params.tema}`,
+    instrucciones:
+      `Marque según lo observado en los estudiantes durante las actividades del tema: “${params.tema}”.`,
+    items,
+    fecha: "",
+  };
+}
 
 
 /* --------------------------- Handler SOLO INICIAL --------------------------- */
@@ -479,7 +529,9 @@ export async function POST(req: NextRequest) {
     const provider: "cohere" | "ollama-mistral" = rawProvider;
 
     // 3) Normalizamos grado y quitamos provider antes de validar
-    const { provider: _ignore, ...candidate } = body ?? {};
+    const instrumentType = normalizeInstrumentType(body?.instrumentType);
+const { provider: _ignore, instrumentType: _itIgnore, ...candidate } = body ?? {};
+
     const bodyForSchema = {
       ...candidate,
       grado: normalizeGrado(candidate.grado) ?? candidate.grado,
@@ -527,8 +579,34 @@ ${capacidades.map((c) => `• ${c}`).join("\n")}
 - No cambies nombres. No mezcles competencias de otras áreas.
 `.trim();
 
+
+const instrumentLabel = INSTRUMENT_LABEL_MAP[instrumentType] || "Lista de cotejo";
+
+const instrumentRules = `
+REGLAS ESTRICTAS PARA INSTRUMENTO (OBLIGATORIO):
+- El usuario eligió UN SOLO instrumento: "${instrumentLabel}" (${instrumentType})
+- PROHIBIDO generar listas de varios instrumentos.
+- Debes incluir EXACTAMENTE un objeto "instrumento" en el JSON final con esta forma:
+
+"instrumento": {
+  "tipo": "${instrumentType}",
+  "tipoLabel": "${instrumentLabel}",
+  "titulo": "título corto y claro",
+  "instrucciones": "instrucciones breves",
+  "items": [
+    { "indicador": "observable", "evidencia": "cómo se recoge" }
+  ]
+}
+
+- items: mínimo 6, máximo 12.
+- Indicador: observable y relacionado al tema.
+- Evidencia: concreta (dibujo, participación, hoja de trabajo, socialización).
+`.trim();
+
+
     // 7) Prompts de INICIAL (inyectamos reglas en system y competencia canónica al prompt)
-    const system = (SYSTEM_INICIAL + "\n" + hardRules).trim();
+    const system = (SYSTEM_INICIAL + "\n" + hardRules + "\n" + instrumentRules).trim();
+
 
     // Si tu builder soporta pasar competencia, hazlo; si no, igual la reforzamos en el prompt
     let prompt = buildUserPromptInicial(payload, compKey);
@@ -537,6 +615,10 @@ ${capacidades.map((c) => `• ${c}`).join("\n")}
 
 [CAPACIDADES PERMITIDAS – USAR SOLO ESTAS]
 ${capacidades.map((c) => `- ${c}`).join("\n")}
+
+[INSTRUMENTO ELEGIDO – GENERAR SOLO 1]
+Tipo: ${instrumentType}
+Nombre: ${instrumentLabel}
 `.trim();
 
     // 8) Llamada a la IA con timeout
@@ -822,8 +904,61 @@ ${capacidades.map((c) => `- ${c}`).join("\n")}
       // ignorar si no hay FS persistente
     }
 
+    // ✅ Instrumento elegido (1 solo): tomar de IA o fallback
+let instrumentoOut = data?.instrumento ?? null;
+
+// normaliza si la IA devolvió como texto o forma rara
+if (instrumentoOut && typeof instrumentoOut === "string") {
+  instrumentoOut = {
+    tipo: instrumentType,
+    tipoLabel: instrumentLabel,
+    titulo: `${instrumentLabel} – ${String((payload as any).tema ?? "").trim() || "Actividad"}`,
+    instrucciones: instrumentoOut,
+    items: [],
+    fecha: "",
+  };
+}
+
+// si no vino, creamos fallback mecánico
+if (!instrumentoOut || typeof instrumentoOut !== "object") {
+  instrumentoOut = buildInstrumentFallback({
+    tipo: instrumentType,
+    tipoLabel: instrumentLabel,
+    tema: String((payload as any).tema ?? "Actividad"),
+    criterios: String(markers.criteriosEvaluacion ?? ""),
+    evidencias: String(markers.evidenciaAprendizaje ?? ""),
+  });
+}
+
+// asegurar forma final
+instrumentoOut.tipo = instrumentType;
+instrumentoOut.tipoLabel = instrumentLabel;
+instrumentoOut.titulo = String(instrumentoOut.titulo || `${instrumentLabel} – ${String((payload as any).tema ?? "Actividad")}`);
+instrumentoOut.instrucciones = String(instrumentoOut.instrucciones || "");
+instrumentoOut.items = Array.isArray(instrumentoOut.items) ? instrumentoOut.items : [];
+
+// asegurar 6 a 12 items
+if (instrumentoOut.items.length < 6) {
+  const fb = buildInstrumentFallback({
+    tipo: instrumentType,
+    tipoLabel: instrumentLabel,
+    tema: String((payload as any).tema ?? "Actividad"),
+    criterios: String(markers.criteriosEvaluacion ?? ""),
+    evidencias: String(markers.evidenciaAprendizaje ?? ""),
+  });
+  const combined = [...instrumentoOut.items, ...fb.items];
+  instrumentoOut.items = combined.slice(0, 8);
+} else if (instrumentoOut.items.length > 12) {
+  instrumentoOut.items = instrumentoOut.items.slice(0, 12);
+}
+
+
     // 11) Respuesta
-    return NextResponse.json({ success: true, data, markers }, { status: 200 });
+    return NextResponse.json(
+  { success: true, data, markers, instrumento: instrumentoOut },
+  { status: 200 }
+);
+
 
   } catch (error: any) {
     console.error("❌ Error en /api/generar (inicial):", error);
