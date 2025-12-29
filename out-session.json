@@ -32,101 +32,101 @@
           "Asocia cantidades con sus respectivos números"
         ],
         "evidenciaAprendizaje": [
-          "Hoja de trabajo con números y dibujos",
-          "Tarjetas numeradas ordenadas por el estudiante"
+          "Hoja de trabajo con números y cantidades",
+          "Dibujo de objetos contando del 1 al 10"
         ],
         "criteriosEvaluacion": [
           "Nombra correctamente los números del 1 al 10",
-          "Asocia la cantidad de objetos con el número correspondiente",
-          "Ordena tarjetas numeradas de manera secuencial",
-          "Participa activamente en las actividades propuestas"
+          "Asocia la cantidad correcta a cada número",
+          "Participa activamente en las actividades",
+          "Muestra interés y atención durante la sesión"
         ],
         "instrumento": {
-          "tipo": "REGISTRO_ANECDOTICO",
-          "tipoLabel": "Registro anecdótico",
-          "titulo": "Registro de participación y comprensión de números",
-          "instrucciones": "Observar y registrar la participación y comprensión de los estudiantes durante las actividades.",
+          "tipo": "LISTA_VERIFICACION",
+          "tipoLabel": "Lista de verificación",
+          "titulo": "Evaluación de la sesión sobre los números del 1 al 10",
+          "instrucciones": "Marque con una paloma (✔) si el estudiante cumple con el indicador.",
           "items": [
             {
-              "indicador": "Nombra los números del 1 al 10",
-              "evidencia": "Participación en la canción y ordenamiento de tarjetas"
+              "indicador": "Nombra correctamente los números del 1 al 10",
+              "evidencia": "Participación oral"
             },
             {
-              "indicador": "Asocia cantidades con números",
-              "evidencia": "Hoja de trabajo completada con dibujos"
+              "indicador": "Asocia la cantidad correcta a cada número",
+              "evidencia": "Hoja de trabajo"
             },
             {
-              "indicador": "Ordena tarjetas numeradas",
-              "evidencia": "Secuencia correcta de tarjetas del 1 al 10"
+              "indicador": "Participa activamente en las actividades",
+              "evidencia": "Observación directa"
             },
             {
-              "indicador": "Participa con atención",
-              "evidencia": "Escucha activa durante la explicación"
+              "indicador": "Muestra interés y atención durante la sesión",
+              "evidencia": "Observación directa"
             },
             {
-              "indicador": "Muestra interés en las actividades",
-              "evidencia": "Participación voluntaria en las dinámicas"
+              "indicador": "Completa la hoja de trabajo con números y cantidades",
+              "evidencia": "Hoja de trabajo"
             },
             {
-              "indicador": "Comunica su comprensión",
-              "evidencia": "Respuestas orales a preguntas sobre cantidades"
+              "indicador": "Realiza un dibujo contando objetos del 1 al 10",
+              "evidencia": "Dibujo"
             }
           ]
         },
         "momentos": {
           "inicio": {
             "estrategias": [
-              "Saludo lúdico: Canto de una canción de bienvenida.",
-              "Motivación: Mostrar láminas con imágenes de objetos en cantidades del 1 al 10.",
-              "Saberes/Exploración previa: Preguntar a los estudiantes cuántos objetos ven en las láminas."
+              "Saludo lúdico: Canto de los números",
+              "Motivación: Mostrar láminas con números y objetos",
+              "Saberes/Exploración previa: Preguntar qué números conocen"
             ],
             "materiales": [
-              "Láminas con imágenes de objetos",
+              "Láminas con números y objetos",
               "Parlantes para canción"
             ]
           },
           "desarrollo": {
             "actividades": [
               {
-                "titulo": "Actividad 1: Canto y movimiento",
+                "titulo": "Actividad 1: Contando con objetos",
                 "pasos": [
-                  "Cantar la canción 'Los números del 1 al 10' con movimientos corporales.",
-                  "Invitar a los estudiantes a contar con los dedos mientras cantan.",
-                  "Repetir la canción dos veces para reforzar el aprendizaje."
+                  "Repartir objetos (bloques, pelotas) a cada niño",
+                  "Pedir que cuenten en voz alta los objetos que tienen",
+                  "Asociar la cantidad con el número correspondiente"
                 ]
               },
               {
-                "titulo": "Actividad 2: Asociación de cantidades",
+                "titulo": "Actividad 2: Hoja de trabajo",
                 "pasos": [
-                  "Repartir hojas de trabajo con dibujos de objetos en cantidades del 1 al 10.",
-                  "Pedir a los estudiantes que coloreen la cantidad de objetos correspondiente a cada número.",
-                  "Recorrer el aula para guiar y apoyar a los estudiantes en la actividad."
+                  "Entregar hojas con dibujos de objetos",
+                  "Pedir que coloreen la cantidad de objetos según el número indicado",
+                  "Revisar juntos las respuestas"
                 ]
               },
               {
-                "titulo": "Actividad 3: Ordenamiento de tarjetas",
+                "titulo": "Actividad 3: Dibujo libre",
                 "pasos": [
-                  "Entregar tarjetas numeradas del 1 al 10 a cada estudiante.",
-                  "Pedir que ordenen las tarjetas de manera secuencial en el piso.",
-                  "Verificar y felicitar a los estudiantes por su ordenamiento correcto."
+                  "Entregar papel y crayolas",
+                  "Pedir que dibujen objetos y escriban el número correspondiente",
+                  "Compartir los dibujos con el grupo"
                 ]
               }
             ],
             "materiales": [
+              "Objetos para contar (bloques, pelotas)",
               "Hojas de trabajo impresas",
-              "Tarjetas numeradas",
+              "Papel bond",
               "Crayolas"
             ]
           },
           "cierre": {
             "estrategias": [
-              "Socialización: Invitar a algunos estudiantes a mostrar su hoja de trabajo y explicar qué hicieron.",
-              "Refuerzo de lo aprendido: Repasar los números del 1 al 10 con una ronda de preguntas.",
-              "Canción de despedida: Cantar una canción de despedida relacionada con los números."
+              "Socialización: Compartir lo aprendido",
+              "Refuerzo de lo aprendido: Canto de los números",
+              "Canción de despedida: 'Adiós, hasta mañana'"
             ],
             "materiales": [
-              "Parlantes para canción",
-              "Láminas con números"
+              "Parlantes para canción"
             ]
           }
         }
@@ -151,17 +151,18 @@
     "competencia": "Resuelve problemas de cantidad",
     "capacidades": "• Traduce cantidades a expresiones numéricas\n• Comunica su comprensión sobre los números y las operaciones",
     "desempenos": "• Identifica y nombra los números del 1 al 10\n• Asocia cantidades con sus respectivos números",
-    "evidenciaAprendizaje": "• Completa una hoja de trabajo: con números y dibujos\n• Tarjetas numeradas ordenadas por el estudiante",
-    "criteriosEvaluacion": "• Nombra correctamente los números del 1 al 10\n• Asocia la cantidad de objetos con el número correspondiente\n• Ordena tarjetas numeradas de manera secuencial\n• Participa activamente en las actividades propuestas",
-    "instrumento": "• [object Object]",
+    "evidenciaAprendizaje": "• Completa una hoja de trabajo: con números y cantidades\n• Realiza un dibujo de objetos contando del 1 al 10",
+    "criteriosEvaluacion": "• Nombra correctamente los números del 1 al 10\n• Asocia la cantidad correcta a cada número\n• Participa activamente en las actividades\n• Muestra interés y atención durante la sesión",
+    "instrumento": "• Lista de verificación",
     "enfoquesTransversales": "• Enfoque de búsqueda de la excelencia: Motiva el esfuerzo\n• la mejora continua y la valoración del progreso.\n• Enfoque de orientación al bien común: Fomenta solidaridad\n• empatía y responsabilidad colectiva\n• trabajo en equipo y cuidado de espacios.",
     "valor": "Honestidad",
     "acciones": "• Escucha con atención\n• Participa con orden",
-    "inicio": "• Saludo lúdico: Canto de una canción de bienvenida.\n• Motivación: Mostrar láminas con imágenes de objetos en cantidades del 1 al 10.\n• Saberes/Exploración previa: Preguntar a los estudiantes cuántos objetos ven en las láminas.",
-    "inicioM": "• Láminas con imágenes de objetos\n• Parlantes para canción",
-    "desarrollo": "• Actividad 1: Canto y movimiento\n• Cantar la canción 'Los números del 1 al 10' con movimientos corporales.\n• Invitar a los estudiantes a contar con los dedos mientras cantan.\n• Repetir la canción dos veces para reforzar el aprendizaje.\n• Actividad 2: Asociación de cantidades\n• Repartir hojas de trabajo con dibujos de objetos en cantidades del 1 al 10.\n• Pedir a los estudiantes que coloreen la cantidad de objetos correspondiente a cada número.\n• Recorrer el aula para guiar y apoyar a los estudiantes en la actividad.\n• Actividad 3: Ordenamiento de tarjetas\n• Entregar tarjetas numeradas del 1 al 10 a cada estudiante.\n• Pedir que ordenen las tarjetas de manera secuencial en el piso.\n• Verificar y felicitar a los estudiantes por su ordenamiento correcto.",
-    "desarrolloM": "• Hojas de trabajo impresas\n• Tarjetas numeradas\n• Crayolas",
-    "cierre": "• Socialización: Invitar a algunos estudiantes a mostrar su hoja de trabajo y explicar qué hicieron.\n• Refuerzo de lo aprendido: Repasar los números del 1 al 10 con una ronda de preguntas.\n• Canción de despedida: Cantar una canción de despedida relacionada con los números.",
-    "cierreM": "• Parlantes para canción\n• Láminas con números"
+    "inicio": "• Saludo lúdico: Canto de los números\n• Motivación: Mostrar láminas con números y objetos\n• Saberes/Exploración previa: Preguntar qué números conocen",
+    "inicioM": "• Láminas con números y objetos\n• Parlantes para canción",
+    "desarrollo": "• Actividad 1: Contando con objetos\n• Repartir objetos (bloques\n• pelotas) a cada niño\n• Pedir que cuenten en voz alta los objetos que tienen\n• Asociar la cantidad con el número correspondiente\n• Actividad 2: Hoja de trabajo\n• Entregar hojas con dibujos de objetos\n• Pedir que coloreen la cantidad de objetos según el número indicado\n• Revisar juntos las respuestas\n• Actividad 3: Dibujo libre\n• Entregar papel y crayolas\n• Pedir que dibujen objetos y escriban el número correspondiente\n• Compartir los dibujos con el grupo",
+    "desarrolloM": "• Objetos para contar (bloques\n• pelotas)\n• Hojas de trabajo impresas\n• Papel bond\n• Crayolas",
+    "cierre": "• Socialización: Compartir lo aprendido\n• Refuerzo de lo aprendido: Canto de los números\n• Canción de despedida: 'Adiós\n• hasta mañana'",
+    "cierreM": "• Parlantes para canción",
+    "footerAuto": "• Documento generado automáticamente mediante SestIA Blossom – ERES"
   }
 }

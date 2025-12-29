@@ -705,7 +705,8 @@ Nombre: ${instrumentLabel}
       desempenos: toStr(f.desempenos ?? f.desempenosPrecisados ?? d.desempenos),
       evidenciaAprendizaje: toStr(f.evidenciaAprendizaje ?? d.evidenciaAprendizaje),
       criteriosEvaluacion: toStr(f.criteriosEvaluacion ?? d.criteriosEvaluacion),
-      instrumento: toStr(f.instrumento ?? d.instrumento ?? "Evaluación cualitativa-Cuantitativa"),
+      instrumento: instrumentLabel, // ✅ siempre texto del instrumento elegido
+
 
       // Enfoques / Valor / Acciones
       enfoquesTransversales: toStr(d.enfoquesTransversales ?? f.enfoquesTransversales ?? (payload as any).enfoquesTransversales),
@@ -733,7 +734,10 @@ Nombre: ${instrumentLabel}
         return [estr, acts].filter(Boolean).join("\n");
       })(),
       cierreM: toStr(f?.momentos?.cierre?.materiales ?? []),
-    };
+     // ✅ FOOTER
+  footerAuto: "Documento generado automáticamente mediante SestIA Blossom – ERES",
+};
+
 
     /* ===== Correcciones finales ===== */
 
