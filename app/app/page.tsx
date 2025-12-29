@@ -357,6 +357,77 @@ export default function AppPage() {
     }
   };
 
+    // ✅ NUEVO: generar SOLO instrumento (sin generar sesión)
+  const generarInstrumento = async () => {
+    setError("");
+    setInstrumento(null);
+
+    // Validaciones mínimas (elige lo que tu backend requiere)
+    const tema = (formulario.tema ?? "").trim();
+    if (!tema) return setError("El tema es obligatorio para generar el instrumento.");
+    if (!formulario.grado.trim()) return setError("El grado es obligatorio.");
+    if (!formulario.area.trim()) return setError("Selecciona un área.");
+
+    setDescargandoInst(true);
+    try {
+      const payload: any = {
+        area: formulario.area,
+        grado: formulario.grado,
+        tema,
+
+        docente: formulario.docente || undefined,
+        fecha: formulario.fecha || undefined,
+        bimestre: formulario.bimestre || undefined,
+        experiencia: formulario.experiencia || undefined,
+
+        // ✅ importante: el tipo de instrumento elegido
+        instrumentType,
+
+        // (opcional) si tu backend lo usa:
+        valor: formulario.valor || undefined,
+        enfoquesTransversales: formulario.enfoquesTransversales,
+        provider: formulario.provider,
+      };
+
+      const res = await fetchWithTimeout(
+        "/api/generarInstrumento",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json; charset=utf-8" },
+          body: JSON.stringify(payload),
+        },
+        240000
+      );
+
+      const text = await res.text();
+      let data: any = null;
+
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch {
+        data = { error: "Respuesta no-JSON del servidor", raw: text };
+      }
+
+      if (!res.ok || !data?.success) {
+        const detalles =
+          data?.issues ? JSON.stringify(data.issues, null, 2)
+          : data?.error ? data.error
+          : text || "Error del servidor";
+        throw new Error(`Error del servidor:\n${detalles}`);
+      }
+
+      // ✅ setea el instrumento para habilitar el botón de descarga
+      setInstrumento(data.instrumento);
+
+    } catch (err: any) {
+      setError(err.message || "Error inesperado al generar instrumento");
+      console.error("❌ generarInstrumento:", err);
+    } finally {
+      setDescargandoInst(false);
+    }
+  };
+
+
   // ---- instrumentos (tu flujo anterior: genera varios)
   
 
@@ -596,6 +667,9 @@ export default function AppPage() {
                 >
                   🚀 {loading ? "Generando…" : "Generar sesión"}
                 </button>
+
+                                
+
 
                 <button
                   type="button"

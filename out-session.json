@@ -2,23 +2,23 @@
   "success": true,
   "data": {
     "datos": {
-      "grado": "5 años",
+      "grado": "3 años",
       "bimestre": "III",
       "area": "Matemática",
-      "experiencia": "VI",
-      "docente": "Adrian Perez",
+      "experiencia": "V",
+      "docente": "Adrian perez",
       "fecha": "28/12/25",
       "numeroSesion": 7,
       "competencia": "Resuelve problemas de cantidad",
       "capacidades": [
-        "Identifica situaciones cotidianas que involucran cantidades y transformarlas en expresiones matemáticas sencillas",
-        "Expresa sus comprensiones y estrategias matemáticas de diversas maneras"
+        "Traduce cantidades a expresiones numéricas",
+        "Comunica su comprensión sobre los números y las operaciones"
       ],
       "enfoquesTransversales": [
         "Enfoque de búsqueda de la excelencia",
         "Enfoque de orientación al bien común"
       ],
-      "valor": "Cooperación",
+      "valor": "Honestidad",
       "acciones": [
         "Escucha con atención",
         "Participa con orden"
@@ -26,106 +26,107 @@
     },
     "filas": [
       {
-        "tituloSesion": "Explorando el cuadrado",
+        "tituloSesion": "Conociendo los números del 1 al 10",
         "desempenos": [
-          "Identifica y dibuja cuadrados en diferentes contextos",
-          "Cuenta y representa cantidades en forma de cuadrado"
+          "Identifica y nombra los números del 1 al 10",
+          "Asocia cantidades con sus respectivos números"
         ],
         "evidenciaAprendizaje": [
-          "Dibujo de cuadrados en hoja de trabajo",
-          "Construcción de figuras con material concreto"
+          "Hoja de trabajo con números y dibujos",
+          "Tarjetas numeradas ordenadas por el estudiante"
         ],
         "criteriosEvaluacion": [
-          "Identifica correctamente las características de un cuadrado",
-          "Dibuja cuadrados con lados iguales y ángulos rectos",
-          "Cuenta y representa cantidades en forma de cuadrado",
-          "Colabora con sus compañeros en las actividades"
+          "Nombra correctamente los números del 1 al 10",
+          "Asocia la cantidad de objetos con el número correspondiente",
+          "Ordena tarjetas numeradas de manera secuencial",
+          "Participa activamente en las actividades propuestas"
         ],
         "instrumento": {
-          "tipo": "DIARIO_CAMPO",
-          "tipoLabel": "Diario de campo",
-          "titulo": "Observación de la sesión sobre el cuadrado",
-          "instrucciones": "Registrar las observaciones durante la sesión, enfocándose en la participación y comprensión de los estudiantes sobre el cuadrado.",
+          "tipo": "REGISTRO_ANECDOTICO",
+          "tipoLabel": "Registro anecdótico",
+          "titulo": "Registro de participación y comprensión de números",
+          "instrucciones": "Observar y registrar la participación y comprensión de los estudiantes durante las actividades.",
           "items": [
             {
-              "indicador": "Identifica características del cuadrado",
-              "evidencia": "Respuestas orales y dibujo en hoja de trabajo"
+              "indicador": "Nombra los números del 1 al 10",
+              "evidencia": "Participación en la canción y ordenamiento de tarjetas"
             },
             {
-              "indicador": "Dibuja cuadrados con precisión",
-              "evidencia": "Hoja de trabajo con dibujos de cuadrados"
+              "indicador": "Asocia cantidades con números",
+              "evidencia": "Hoja de trabajo completada con dibujos"
             },
             {
-              "indicador": "Cuenta y representa cantidades en cuadrado",
-              "evidencia": "Actividad de conteo y representación"
+              "indicador": "Ordena tarjetas numeradas",
+              "evidencia": "Secuencia correcta de tarjetas del 1 al 10"
             },
             {
-              "indicador": "Colabora con sus compañeros",
-              "evidencia": "Participación en actividades grupales"
+              "indicador": "Participa con atención",
+              "evidencia": "Escucha activa durante la explicación"
             },
             {
-              "indicador": "Escucha atentamente las instrucciones",
-              "evidencia": "Seguimiento de instrucciones durante las actividades"
+              "indicador": "Muestra interés en las actividades",
+              "evidencia": "Participación voluntaria en las dinámicas"
             },
             {
-              "indicador": "Participa con orden",
-              "evidencia": "Comportamiento durante la sesión"
+              "indicador": "Comunica su comprensión",
+              "evidencia": "Respuestas orales a preguntas sobre cantidades"
             }
           ]
         },
         "momentos": {
           "inicio": {
             "estrategias": [
-              "Saludo lúdico: Canto de bienvenida con movimientos.",
-              "Motivación: Mostrar objetos cuadrados del aula y preguntar qué tienen en común.",
-              "Saberes/Exploración previa: Preguntar si conocen otras figuras y qué saben del cuadrado."
+              "Saludo lúdico: Canto de una canción de bienvenida.",
+              "Motivación: Mostrar láminas con imágenes de objetos en cantidades del 1 al 10.",
+              "Saberes/Exploración previa: Preguntar a los estudiantes cuántos objetos ven en las láminas."
             ],
             "materiales": [
-              "Láminas con objetos cuadrados",
+              "Láminas con imágenes de objetos",
               "Parlantes para canción"
             ]
           },
           "desarrollo": {
             "actividades": [
               {
-                "titulo": "Actividad 1: Cazadores de cuadrados",
+                "titulo": "Actividad 1: Canto y movimiento",
                 "pasos": [
-                  "Paseo por el aula para identificar objetos con forma de cuadrado.",
-                  "Contar y registrar cuántos cuadrados encontraron.",
-                  "Dibujar uno de los cuadrados encontrados en su hoja."
+                  "Cantar la canción 'Los números del 1 al 10' con movimientos corporales.",
+                  "Invitar a los estudiantes a contar con los dedos mientras cantan.",
+                  "Repetir la canción dos veces para reforzar el aprendizaje."
                 ]
               },
               {
-                "titulo": "Actividad 2: Construyendo cuadrados",
+                "titulo": "Actividad 2: Asociación de cantidades",
                 "pasos": [
-                  "Entregar material concreto (palitos o tarjetas) para armar cuadrados.",
-                  "Trabajar en parejas para construir cuadrados de diferentes tamaños.",
-                  "Contar los palitos o tarjetas usados en cada cuadrado."
+                  "Repartir hojas de trabajo con dibujos de objetos en cantidades del 1 al 10.",
+                  "Pedir a los estudiantes que coloreen la cantidad de objetos correspondiente a cada número.",
+                  "Recorrer el aula para guiar y apoyar a los estudiantes en la actividad."
                 ]
               },
               {
-                "titulo": "Actividad 3: Dibujando cuadrados",
+                "titulo": "Actividad 3: Ordenamiento de tarjetas",
                 "pasos": [
-                  "Entregar hoja de trabajo con cuadros sin terminar.",
-                  "Completar los cuadros para convertirlos en cuadrados.",
-                  "Colorear los cuadrados dibujados."
+                  "Entregar tarjetas numeradas del 1 al 10 a cada estudiante.",
+                  "Pedir que ordenen las tarjetas de manera secuencial en el piso.",
+                  "Verificar y felicitar a los estudiantes por su ordenamiento correcto."
                 ]
               }
             ],
             "materiales": [
-              "Palitos o tarjetas para construir",
-              "Hojas de trabajo",
+              "Hojas de trabajo impresas",
+              "Tarjetas numeradas",
               "Crayolas"
             ]
           },
           "cierre": {
             "estrategias": [
-              "Socialización: Compartir los cuadrados dibujados y construidos.",
-              "Refuerzo de lo aprendido: Resaltar las características del cuadrado.",
-              "Canción de despedida: Canto relacionado con las formas geométricas."
+              "Socialización: Invitar a algunos estudiantes a mostrar su hoja de trabajo y explicar qué hicieron.",
+              "Refuerzo de lo aprendido: Repasar los números del 1 al 10 con una ronda de preguntas.",
+              "Canción de despedida: Cantar una canción de despedida relacionada con los números."
             ],
             "materiales": [
-              "Parlantes para canción"
+              "Parlantes para canción",
+              "Láminas con números"
             ]
           }
         }
@@ -139,28 +140,28 @@
     ]
   },
   "markers": {
-    "tituloSesion": "Explorando el cuadrado",
-    "grado": "5 años",
+    "tituloSesion": "Conociendo los números del 1 al 10",
+    "grado": "3 años",
     "bimestre": "III",
     "area": "Matemática",
-    "experiencia": "VI",
-    "docente": "Adrian Perez",
+    "experiencia": "V",
+    "docente": "Adrian perez",
     "fecha": "28/12/25",
     "sesionN": "7",
     "competencia": "Resuelve problemas de cantidad",
     "capacidades": "• Traduce cantidades a expresiones numéricas\n• Comunica su comprensión sobre los números y las operaciones",
-    "desempenos": "• Identifica y dibuja cuadrados en diferentes contextos\n• Cuenta y representa cantidades en forma de cuadrado",
-    "evidenciaAprendizaje": "• Realiza un dibujo de cuadrados en hoja de trabajo\n• Construcción de figuras con material concreto",
-    "criteriosEvaluacion": "• Identifica correctamente las características de un cuadrado\n• Dibuja cuadrados con lados iguales y ángulos rectos\n• Cuenta y representa cantidades en forma de cuadrado\n• Colabora con sus compañeros en las actividades",
+    "desempenos": "• Identifica y nombra los números del 1 al 10\n• Asocia cantidades con sus respectivos números",
+    "evidenciaAprendizaje": "• Completa una hoja de trabajo: con números y dibujos\n• Tarjetas numeradas ordenadas por el estudiante",
+    "criteriosEvaluacion": "• Nombra correctamente los números del 1 al 10\n• Asocia la cantidad de objetos con el número correspondiente\n• Ordena tarjetas numeradas de manera secuencial\n• Participa activamente en las actividades propuestas",
     "instrumento": "• [object Object]",
     "enfoquesTransversales": "• Enfoque de búsqueda de la excelencia: Motiva el esfuerzo\n• la mejora continua y la valoración del progreso.\n• Enfoque de orientación al bien común: Fomenta solidaridad\n• empatía y responsabilidad colectiva\n• trabajo en equipo y cuidado de espacios.",
-    "valor": "Cooperación",
+    "valor": "Honestidad",
     "acciones": "• Escucha con atención\n• Participa con orden",
-    "inicio": "• Saludo lúdico: Canto de bienvenida con movimientos.\n• Motivación: Mostrar objetos cuadrados del aula y preguntar qué tienen en común.\n• Saberes/Exploración previa: Preguntar si conocen otras figuras y qué saben del cuadrado.",
-    "inicioM": "• Láminas con objetos cuadrados\n• Parlantes para canción",
-    "desarrollo": "• Actividad 1: Cazadores de cuadrados\n• Paseo por el aula para identificar objetos con forma de cuadrado.\n• Contar y registrar cuántos cuadrados encontraron.\n• Dibujar uno de los cuadrados encontrados en su hoja.\n• Actividad 2: Construyendo cuadrados\n• Entregar material concreto (palitos o tarjetas) para armar cuadrados.\n• Trabajar en parejas para construir cuadrados de diferentes tamaños.\n• Contar los palitos o tarjetas usados en cada cuadrado.\n• Actividad 3: Dibujando cuadrados\n• Entregar hoja de trabajo con cuadros sin terminar.\n• Completar los cuadros para convertirlos en cuadrados.\n• Colorear los cuadrados dibujados.",
-    "desarrolloM": "• Palitos o tarjetas para construir\n• Hojas de trabajo\n• Crayolas",
-    "cierre": "• Socialización: Compartir los cuadrados dibujados y construidos.\n• Refuerzo de lo aprendido: Resaltar las características del cuadrado.\n• Canción de despedida: Canto relacionado con las formas geométricas.",
-    "cierreM": "• Parlantes para canción"
+    "inicio": "• Saludo lúdico: Canto de una canción de bienvenida.\n• Motivación: Mostrar láminas con imágenes de objetos en cantidades del 1 al 10.\n• Saberes/Exploración previa: Preguntar a los estudiantes cuántos objetos ven en las láminas.",
+    "inicioM": "• Láminas con imágenes de objetos\n• Parlantes para canción",
+    "desarrollo": "• Actividad 1: Canto y movimiento\n• Cantar la canción 'Los números del 1 al 10' con movimientos corporales.\n• Invitar a los estudiantes a contar con los dedos mientras cantan.\n• Repetir la canción dos veces para reforzar el aprendizaje.\n• Actividad 2: Asociación de cantidades\n• Repartir hojas de trabajo con dibujos de objetos en cantidades del 1 al 10.\n• Pedir a los estudiantes que coloreen la cantidad de objetos correspondiente a cada número.\n• Recorrer el aula para guiar y apoyar a los estudiantes en la actividad.\n• Actividad 3: Ordenamiento de tarjetas\n• Entregar tarjetas numeradas del 1 al 10 a cada estudiante.\n• Pedir que ordenen las tarjetas de manera secuencial en el piso.\n• Verificar y felicitar a los estudiantes por su ordenamiento correcto.",
+    "desarrolloM": "• Hojas de trabajo impresas\n• Tarjetas numeradas\n• Crayolas",
+    "cierre": "• Socialización: Invitar a algunos estudiantes a mostrar su hoja de trabajo y explicar qué hicieron.\n• Refuerzo de lo aprendido: Repasar los números del 1 al 10 con una ronda de preguntas.\n• Canción de despedida: Cantar una canción de despedida relacionada con los números.",
+    "cierreM": "• Parlantes para canción\n• Láminas con números"
   }
 }
